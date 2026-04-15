@@ -15,7 +15,10 @@ module.exports = (io) => {
         //     io.emit("counterUpdate", nextCounter);
         // });
 
+        io.emit("playerJoined", { id: socket.id });
+
         socket.on("disconnect", () => {
+            io.emit("playerLeft", { id: socket.id });
             console.log("Gebruiker weg:", socket.id);
         });
     });

@@ -1,25 +1,19 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Realtime Clicker</title>
+    <title>FPSTris</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>
 <body>
+    <canvas id="otherGames"></canvas>
 
-<!-- <h1>Realtime Clicker Game</h1>
+    <div id="mainGame">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+    </div>
 
-<p>Score: <span id="score">0</span></p>
-
-<button id="click-button" type="button">Klik mij!</button> -->
-
-<h1>singleplayer tetris</h1>
-<canvas id="gameCanvas" width="300" height="600" style="border:1px solid #000000;"></canvas>
-
-<br><br>
-<a href="/">Terug</a>
-
-<!-- Socket.IO client -->
-<script src="/socket.io/socket.io.js"></script>
-<script src="/js/game.js" defer></script>
-
+    <!-- Socket.IO client -->
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="/js/game.js" defer></script>
+    <script src="/js/otherFields.js" defer></script>
 </body>
 </html>

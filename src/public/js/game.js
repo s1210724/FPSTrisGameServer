@@ -71,14 +71,14 @@ function getNextPiece() {
 
 // Collision checks only the piece cells, which keeps each test very fast.
 function collides(piece, nextX, nextY, nextShape = piece.shape) {
-    for (let r = 0; r < nextShape.length; r++) {
-        for (let c = 0; c < nextShape[r].length; c++) {
-            if (!nextShape[r][c]) {
+    for (let row = 0; row < nextShape.length; row++) {
+        for (let col = 0; col < nextShape[row].length; col++) {
+            if (!nextShape[row][col]) {
                 continue;
             }
 
-            const boardX = nextX + c;
-            const boardY = nextY + r;
+            const boardX = nextX + col;
+            const boardY = nextY + row;
 
             if (boardX < 0 || boardX >= COLS || boardY >= ROWS) {
                 return true;
@@ -94,14 +94,14 @@ function collides(piece, nextX, nextY, nextShape = piece.shape) {
 
 // Merge writes the active piece into the locked board grid.
 function lockPiece(piece) {
-    for (let r = 0; r < piece.shape.length; r++) {
-        for (let c = 0; c < piece.shape[r].length; c++) {
-            if (!piece.shape[r][c]) {
+    for (let row = 0; row < piece.shape.length; row++) {
+        for (let col = 0; col < piece.shape[row].length; col++) {
+            if (!piece.shape[row][col]) {
                 continue;
             }
 
-            const boardY = piece.y + r;
-            const boardX = piece.x + c;
+            const boardY = piece.y + row;
+            const boardX = piece.x + col;
             if (boardY >= 0) {
                 board[boardY][boardX] = piece.color;
             }
@@ -112,12 +112,12 @@ function lockPiece(piece) {
 // Clear full lines and shift the above rows downward.
 function clearLines() {
     let cleared = 0;
-    for (let r = ROWS - 1; r >= 0; r--) {
-        if (board[r].every(cell => cell !== 0)) {
-            board.splice(r, 1);
+    for (let row = ROWS - 1; row >= 0; row--) {
+        if (board[row].every(cell => cell !== 0)) {
+            board.splice(row, 1);
             board.unshift(Array(COLS).fill(0));
             cleared++;
-            r++;
+            row++;
         }
     }
 
