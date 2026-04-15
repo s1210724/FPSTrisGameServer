@@ -3,8 +3,6 @@ const mainGameContainer = document.getElementById("mainGame");
 const playerFields = {};
 let layout = {};
 
-const socket = io();
-
 if (otherGamesCanvas && mainGameContainer) {
 	const otherGamesCtx = otherGamesCanvas.getContext("2d");
 	const BOARD_COLS = 10;
@@ -192,13 +190,14 @@ if (otherGamesCanvas && mainGameContainer) {
 
 	redraw();
 
-    socket.on("playerJoined", (playerData) => {
+	socket.on("playerJoined", (playerData) => {
+		console.log("test");
         debugger;
         playerFields[playerData.id] = Object.keys(playerFields).length || 0;
         updatePlayerFields(layout.slots[playerFields[playerData.id]], playerFields[playerData.id], layout.boardWidth, layout.boardHeight);
     });
 
-    socket.on("playerLeft", (playerData) => {
+	socket.on("playerLeft", (playerData) => {
         delete playerFields[playerData.id];
     });
 }

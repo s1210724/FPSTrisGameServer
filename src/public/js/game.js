@@ -1,5 +1,5 @@
-// Socket.IO is loaded by the page; keep the connection alive for future multiplayer hooks.
-io();
+// Reuse one shared socket across all page scripts to avoid duplicate connections.
+const socket = io();
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");

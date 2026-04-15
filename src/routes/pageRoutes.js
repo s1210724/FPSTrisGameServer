@@ -5,5 +5,6 @@ const pageController = require("../controllers/pageController");
 
 router.get("/", pageController.getHomePage);
 router.get("/game", pageController.getGamePage);
+router.get("/lobby", pageController.getLobbyPage);
 
 module.exports = router;

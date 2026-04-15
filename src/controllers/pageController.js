@@ -7,3 +7,7 @@ exports.getHomePage = (req, res) => {
 exports.getGamePage = (req, res) => {
     res.sendFile(pageService.getViewPath("game.html"));
 };
+
+exports.getLobbyPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("lobby.html"));
+};

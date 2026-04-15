@@ -1,25 +1,43 @@
 const gameService = require("../services/gameService");
+const lobbyService = require("../services/lobbyService");
+const lobbys = {};
+const games = {};
+const duels = {};
 
 module.exports = (io) => {
     io.on("connection", (socket) => {
-        console.log("Gebruiker verbonden:", socket.id);
+        socket.on("joinLobby", (data, ack) => {
+            // add player to a lobby or create one if all are full on none exist
+            const lobby = lobbyService.joinLobby(lobbys, socket);
 
-        // // stuur huidige state
-        // socket.emit("counterUpdate", gameService.getCounter());
+            // notify existing players in the lobby about the new player and then subscribe the new player to the lobby room for future updates
+            io.to(lobby.id).emit("newConnection", socket.id);
+            socket.join(lobby.id);
 
-        // // klik event
-        // socket.on("click", () => {
-        //     const nextCounter = gameService.incrementCounter();
+            // acknowledge the join with the current player list in the lobby
+            if (typeof ack === "function") {
+                ack(lobbyService.getAllPlayers(lobby));
+            }
+        });
 
-        //     // stuur naar iedereen
-        //     io.emit("counterUpdate", nextCounter);
-        // });
+        socket.on("disconnecting", () => {
+            // find the lobby the player is in 
+            const joinedLobbyIds = [...socket.rooms].filter((roomId) => roomId !== socket.id);
+            const lobbyId = joinedLobbyIds.find((roomId) => Boolean(lobbys[roomId]));
 
-        io.emit("playerJoined", { id: socket.id });
+            // return if no lobby is found
+            if (!lobbyId) {
+                return;
+            }
 
-        socket.on("disconnect", () => {
-            io.emit("playerLeft", { id: socket.id });
-            console.log("Gebruiker weg:", socket.id);
+            // remove the player from the lobby and delete the lobby if it becomes empty
+            const lobby = lobbyService.leaveLobby(lobbys, lobbyId, socket.id);
+            if (!lobby) {
+                return;
+            }
+
+            // notify remaining players in the lobby about the departure
+            io.to(lobbyId).emit("playerLeft", socket.id);
         });
     });
 };
