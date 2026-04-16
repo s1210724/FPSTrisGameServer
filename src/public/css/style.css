@@ -1,0 +1,150 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style-type: none;
+}
+
+:root {
+    --primary-color: rgb(251, 191, 36);
+    --primary-background: #1A1A1A;
+    --secondary-background-color: #212121;
+    --accent-background-color: rgb(251, 191, 36, 0.15);
+}
+
+html,
+body {
+    width: 100%;
+    height: 100%;
+}
+
+body {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--primary-background);
+
+    > #lobbyMessage {
+        margin: 1rem 0 1rem 0;
+        font-size: 3rem;
+        color: var(--primary-color);
+        background-color: var(--accent-background-color);
+        border: var(--primary-color) 2px solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 70%;
+        height: auto;
+        aspect-ratio: 5/1;
+        max-height: 15%;
+        box-shadow: 0px 0px 10px var(--primary-color);
+    }
+
+    > #playerList {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        min-height: 50%;
+        flex: 5;
+        overflow-y: auto;
+        overflow-x: visible;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--secondary-background-color);
+
+        > li {
+            width: 70%;
+            height: fit-content;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary-background-color);
+            padding: 1rem 1rem;
+            margin: 1rem 0;
+            border-left: 5px solid var(--primary-color);
+            box-shadow: inset 14px 0 16px -14px var(--primary-color), 5px 5px black;
+
+            > p {
+                color: var(--primary-color);
+                font-size: 2em;
+            }
+        }
+    }
+
+    > div {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+            > #leaveButton {
+            width: 25%;
+            padding: .8rem 1rem;
+            background-color: var(--secondary-background-color);
+            border: var(--primary-color) 2px solid;
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            text-decoration: none;
+            box-shadow: 5px 5px var(--accent-background-color);
+            transition: .15s ease-in-out;
+
+            &:hover {
+                border-width: 5px;
+                box-shadow: 0px 0px var(--accent-background-color), inset 0px 0px 15px var(--primary-color);
+            }
+        }
+    }
+}
+
+#playerList::-webkit-scrollbar {
+    width: 10px;
+}
+
+#playerList::-webkit-scrollbar-track {
+    background: var(--secondary-background-color);
+}
+
+#playerList::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 999px;
+}
+
+#playerList::-webkit-scrollbar-thumb:hover {
+    filter: brightness(0.95);
+}
+
+#otherGames {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#mainGame {
+    position: relative;
+    z-index: 2;
+    width: min(36vw, 320px);
+    height: min(92vh, 640px);
+    aspect-ratio: 1 / 2;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(148, 163, 184, 0.25);
+    padding: 10px;
+}
+
+#gameCanvas {
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+}
