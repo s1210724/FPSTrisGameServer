@@ -6,7 +6,6 @@ socket.emit("joinLobby", {}, (response) => {
     response.forEach((player) => {
         playerList.push(player);
     });
-    console.log(response);
     updatePlayerList();
 });
 
@@ -22,6 +21,15 @@ socket.on("playerLeft", (playerName) => {
         updatePlayerList();
     }
 });
+
+socket.on("sessionMigrated", (data) => {
+    localStorage.setItem("sessionData", JSON.stringify(data));
+    window.location.href = "/game"; // Navigate to game page
+});
+
+function migrateToSession() {
+    socket.emit("migrateToSession");
+}
 
 function updatePlayerList() {
     playerListElement.innerHTML = "";
