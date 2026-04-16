@@ -27,7 +27,12 @@ function updatePlayerList() {
     playerListElement.innerHTML = "";
     playerList.forEach((player) => {
         const listItem = document.createElement("li");
-        listItem.textContent = player;
+        const nameP = document.createElement("p");
+        nameP.textContent = player;
+        const readyP = document.createElement("p");
+        readyP.textContent = "ready";
+        listItem.appendChild(nameP);
+        listItem.appendChild(readyP);
         playerListElement.appendChild(listItem);
     });
 }
