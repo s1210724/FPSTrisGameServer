@@ -3,7 +3,18 @@ const socket = io();
 
 const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 
-console.log("Loaded session data:", session);
+/* start socket logic */
+
+socket.emit("joinSession", { sessionId: session.id, password: session.password }, (response) => {
+    if (response.error) {
+        alert("Failed to join session: " + response.error);
+        return;
+    }
+
+    console.log("Joined session successfully:", response);
+});
+
+/* end socket logic */
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
