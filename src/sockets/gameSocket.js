@@ -1,7 +1,7 @@
-const gameService = require("../services/gameService");
 const lobbyService = require("../services/lobbyService");
+const sessionService = require("../services/sessionService");
 const lobbys = {};
-const games = {};
+const sessions = {};
 const duels = {};
 
 module.exports = (io) => {
@@ -20,24 +20,30 @@ module.exports = (io) => {
             }
         });
 
+        socket.on("migrateToSession", () => {
+            const lobby = getLobbyBySocketId(socket);
+            const sessionId = sessionService.migrateLobbyToSession(lobby, sessions);
+            socket.emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password});
+        });
+
         socket.on("disconnecting", () => {
-            // find the lobby the player is in 
-            const joinedLobbyIds = [...socket.rooms].filter((roomId) => roomId !== socket.id);
-            const lobbyId = joinedLobbyIds.find((roomId) => Boolean(lobbys[roomId]));
-
-            // return if no lobby is found
-            if (!lobbyId) {
-                return;
-            }
-
-            // remove the player from the lobby and delete the lobby if it becomes empty
-            const lobby = lobbyService.leaveLobby(lobbys, lobbyId, socket.id);
+            const lobby = getLobbyBySocketId(socket);
             if (!lobby) {
                 return;
             }
 
+            // remove the player from the lobby and delete the lobby if it becomes empty
+            lobbyService.leaveLobby(lobbys, lobby.id, socket.id);
+
             // notify remaining players in the lobby about the departure
-            io.to(lobbyId).emit("playerLeft", socket.id);
+            io.to(lobby.id).emit("playerLeft", socket.id);
         });
     });
 };
+
+function getLobbyBySocketId(socket) {
+    const joinedLobbyIds = [...socket.rooms].filter((roomId) => roomId !== socket.id);
+    const lobbyId = joinedLobbyIds.find((roomId) => Boolean(lobbys[roomId]));
+    const lobby = lobbys[lobbyId];
+    return lobby;
+}

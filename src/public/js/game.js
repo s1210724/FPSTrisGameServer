@@ -1,6 +1,10 @@
 // Reuse one shared socket across all page scripts to avoid duplicate connections.
 const socket = io();
 
+const session = JSON.parse(localStorage.getItem('sessionData')) || {};
+
+console.log("Loaded session data:", session);
+
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
