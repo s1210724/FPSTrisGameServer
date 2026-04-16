@@ -69,44 +69,39 @@ function getNextPiece() {
     return createPieceFromType(nextType);
 }
 
+function getFilledCells(shape) {
+    return shape.flatMap((row, rowIndex) => {
+        return row
+            .map((cell, colIndex) => (cell ? { row: rowIndex, col: colIndex } : null))
+            .filter(Boolean);
+    });
+}
+
 // Collision checks only the piece cells, which keeps each test very fast.
 function collides(piece, nextX, nextY, nextShape = piece.shape) {
-    for (let row = 0; row < nextShape.length; row++) {
-        for (let col = 0; col < nextShape[row].length; col++) {
-            if (!nextShape[row][col]) {
-                continue;
-            }
+    const filledCells = getFilledCells(nextShape);
+    return filledCells.some(({ row, col }) => {
+        const boardX = nextX + col;
+        const boardY = nextY + row;
 
-            const boardX = nextX + col;
-            const boardY = nextY + row;
-
-            if (boardX < 0 || boardX >= COLS || boardY >= ROWS) {
-                return true;
-            }
-
-            if (boardY >= 0 && board[boardY][boardX] !== 0) {
-                return true;
-            }
+        if (boardX < 0 || boardX >= COLS || boardY >= ROWS) {
+            return true;
         }
-    }
-    return false;
+
+        return boardY >= 0 && board[boardY][boardX] !== 0;
+    });
 }
 
 // Merge writes the active piece into the locked board grid.
 function lockPiece(piece) {
-    for (let row = 0; row < piece.shape.length; row++) {
-        for (let col = 0; col < piece.shape[row].length; col++) {
-            if (!piece.shape[row][col]) {
-                continue;
-            }
-
-            const boardY = piece.y + row;
-            const boardX = piece.x + col;
-            if (boardY >= 0) {
-                board[boardY][boardX] = piece.color;
-            }
+    const filledCells = getFilledCells(piece.shape);
+    filledCells.forEach(({ row, col }) => {
+        const boardY = piece.y + row;
+        const boardX = piece.x + col;
+        if (boardY >= 0) {
+            board[boardY][boardX] = piece.color;
         }
-    }
+    });
 }
 
 // Clear full lines and shift the above rows downward.
@@ -130,45 +125,45 @@ function clearLines() {
 }
 
 function rotateClockwise(shape) {
-    const rows = shape.length;
-    const cols = shape[0].length;
-    const rotated = Array.from({ length: cols }, () => Array(rows).fill(0));
-
-    for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-            rotated[c][rows - 1 - r] = shape[r][c];
-        }
-    }
-
-    return rotated;
+    return shape[0].map((_, colIndex) => {
+        return shape.map(row => row[colIndex]).reverse();
+    });
 }
 
 function spawnNextPiece() {
     activePiece = getNextPiece();
-    if (collides(activePiece, activePiece.x, activePiece.y)) {
+    const spawnCollides = collides(activePiece, activePiece.x, activePiece.y);
+    if (spawnCollides) {
         isGameOver = true;
     }
 }
 
 function movePiece(deltaX) {
     const newX = activePiece.x + deltaX;
-    if (!collides(activePiece, newX, activePiece.y)) {
+    const canMove = !collides(activePiece, newX, activePiece.y);
+    if (canMove) {
         activePiece.x = newX;
     }
 }
 
 function rotatePiece() {
     const rotated = rotateClockwise(activePiece.shape);
-    if (!collides(activePiece, activePiece.x, activePiece.y, rotated)) {
+    const canRotateInPlace = !collides(activePiece, activePiece.x, activePiece.y, rotated);
+    if (canRotateInPlace) {
         activePiece.shape = rotated;
         return;
     }
 
     // Small wall-kick allows rotation near side walls.
-    if (!collides(activePiece, activePiece.x - 1, activePiece.y, rotated)) {
+    const canKickLeft = !collides(activePiece, activePiece.x - 1, activePiece.y, rotated);
+    if (canKickLeft) {
         activePiece.x -= 1;
         activePiece.shape = rotated;
-    } else if (!collides(activePiece, activePiece.x + 1, activePiece.y, rotated)) {
+        return;
+    }
+
+    const canKickRight = !collides(activePiece, activePiece.x + 1, activePiece.y, rotated);
+    if (canKickRight) {
         activePiece.x += 1;
         activePiece.shape = rotated;
     }
@@ -176,7 +171,8 @@ function rotatePiece() {
 
 function stepDown() {
     const newY = activePiece.y + 1;
-    if (!collides(activePiece, activePiece.x, newY)) {
+    const canStepDown = !collides(activePiece, activePiece.x, newY);
+    if (canStepDown) {
         activePiece.y = newY;
         return;
     }
@@ -187,8 +183,10 @@ function stepDown() {
 }
 
 function hardDrop() {
-    while (!collides(activePiece, activePiece.x, activePiece.y + 1)) {
+    let canDropFurther = !collides(activePiece, activePiece.x, activePiece.y + 1);
+    while (canDropFurther) {
         activePiece.y += 1;
+        canDropFurther = !collides(activePiece, activePiece.x, activePiece.y + 1);
     }
     stepDown();
 }
@@ -215,19 +213,14 @@ function drawBoard() {
 }
 
 function drawPiece(piece) {
-    for (let r = 0; r < piece.shape.length; r++) {
-        for (let c = 0; c < piece.shape[r].length; c++) {
-            if (!piece.shape[r][c]) {
-                continue;
-            }
-
-            const drawX = piece.x + c;
-            const drawY = piece.y + r;
-            if (drawY >= 0) {
-                drawCell(drawX, drawY, piece.color);
-            }
+    const filledCells = getFilledCells(piece.shape);
+    filledCells.forEach(({ row, col }) => {
+        const drawX = piece.x + col;
+        const drawY = piece.y + row;
+        if (drawY >= 0) {
+            drawCell(drawX, drawY, piece.color);
         }
-    }
+    });
 }
 
 function drawHud() {
