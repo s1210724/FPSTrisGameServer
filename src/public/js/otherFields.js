@@ -8,7 +8,7 @@ if (otherGamesCanvas && mainGameContainer) {
 	const BOARD_COLS = 10;
 	const BOARD_ROWS = 20;
 	const BOARD_ASPECT_RATIO = 1 / 2;
-	const MAX_OTHER_FIELDS = 56;
+	const MAX_OTHER_FIELDS = (session.playerAmount ? Math.ceil(session.playerAmount / 2) * 2 : 56);
 	const MIN_BOARD_WIDTH = 22;
 	const CELL_GAP = 10;
 	const SAFE_MARGIN = 20;

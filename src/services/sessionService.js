@@ -8,7 +8,45 @@ function migrateLobbyToSession(lobby, sessions) {
     return sessionId;
 }
 
+function joinSession(socket, sessionId, sessions) {
+    session = sessions[sessionId];
+    if (!session) {
+        return null;
+    }
+
+    const allJoined = session.addPlayer(socket);
+    return allJoined;
+}
+
+function leaveSession(sessions, sessionId, socketId) {
+    const session = sessions[sessionId];
+    if (!session) {
+        return null;
+    }
+
+    session.removePlayer(socketId);
+    if (session.getAmountOfPlayers() === 0) {
+        delete sessions[sessionId];
+        return null;
+    }
+
+    return session;
+}
+
+function updatePlayerScore(socket, score, session) {
+    if (!session || session.type !== "session") {
+        return null;
+    }
+
+    session.data.updatePlayerScore(socket.id, score);
+
+    const highScoreString = session.data.getHighScoreString();
+    return highScoreString;
+}
 
 module.exports = {
-    migrateLobbyToSession
+    migrateLobbyToSession,
+    joinSession,
+    leaveSession,
+    updatePlayerScore
 };

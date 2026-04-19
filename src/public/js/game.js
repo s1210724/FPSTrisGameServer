@@ -14,6 +14,19 @@ socket.emit("joinSession", { sessionId: session.id, password: session.password }
     console.log("Joined session successfully:", response);
 });
 
+socket.on("sessionReady", () => {
+    spawnNextPiece();
+    requestAnimationFrame(gameLoop);
+})
+
+socket.on("updateScore", (data) => {
+    console.log(data);
+});
+
+function broadcastscore() {
+    socket.emit("updateScore", score );
+}
+
 /* end socket logic */
 
 const canvas = document.getElementById("gameCanvas");
@@ -136,6 +149,7 @@ function clearLines() {
         if (score % 1000 === 0) {
             dropIntervalMs = Math.max(100, dropIntervalMs - 50);
         }
+        broadcastscore();
     }
 }
 
@@ -299,6 +313,3 @@ function gameLoop(timestamp) {
 
     requestAnimationFrame(gameLoop);
 }
-
-spawnNextPiece();
-requestAnimationFrame(gameLoop);
