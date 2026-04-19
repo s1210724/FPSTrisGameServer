@@ -11,3 +11,8 @@ exports.getGamePage = (req, res) => {
 exports.getLobbyPage = (req, res) => {
     res.sendFile(pageService.getViewPath("lobby.html"));
 };
+
+exports.getApiCallPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("apicall.html"));
+};
+
