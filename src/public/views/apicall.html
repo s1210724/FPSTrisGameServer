@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FPSTris API oproep</title>
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+</head>
+<body class="api-page-body">
+    <main class="api-page">
+        <h1>Nieuwe gebruiker aanmaken</h1>
+        <p id="apiStatus">Vul de velden in om een nieuwe database-entry aan te maken via de API-server.</p>
+
+        <section class="api-users">
+            <h2>Huidige gebruikers</h2>
+            <p id="usersStatus" class="api-users-status">Gebruikers worden geladen...</p>
+            <ul id="usersList" class="api-users-list"></ul>
+        </section>
+
+        <form id="apiForm" class="api-form">
+            <label for="voornaam">Voornaam</label>
+            <input id="voornaam" name="voornaam" type="text" autocomplete="given-name" required>
+
+            <label for="achternaam">Achternaam</label>
+            <input id="achternaam" name="achternaam" type="text" autocomplete="family-name" required>
+
+            <button type="submit">Opslaan</button>
+        </form>
+
+        <pre id="apiResult" class="api-result">Nog geen verzoek verzonden.</pre>
+        <a class="api-back-link" href="/">Terug naar start</a>
+    </main>
+
+    <script>
+        const formElement = document.getElementById("apiForm");
+        const statusElement = document.getElementById("apiStatus");
+        const resultElement = document.getElementById("apiResult");
+        const voornaamElement = document.getElementById("voornaam");
+        const achternaamElement = document.getElementById("achternaam");
+        const usersStatusElement = document.getElementById("usersStatus");
+        const usersListElement = document.getElementById("usersList");
+
+        function formatUser(user) {
+            if (!user || typeof user !== "object") {
+                return String(user);
+            }
+
+            const voornaam = user.voornaam || user.firstname || user.firstName || "Onbekend";
+            const achternaam = user.achternaam || user.lastname || user.lastName || "";
+
+            return `${voornaam}${achternaam ? ` ${achternaam}` : ""}`;
+        }
+
+        async function loadUsers() {
+            usersStatusElement.textContent = "Gebruikers worden geladen...";
+            usersListElement.innerHTML = "";
+
+            try {
+                const response = await fetch("http://localhost:3001/api/users");
+                const responseText = await response.text();
+
+                if (!response.ok) {
+                    throw new Error(responseText || `Request failed with status ${response.status}`);
+                }
+
+                const users = responseText ? JSON.parse(responseText) : [];
+
+                if (!Array.isArray(users) || users.length === 0) {
+                    usersStatusElement.textContent = "Er zijn nog geen gebruikers.";
+                    return;
+                }
+
+                usersStatusElement.textContent = `${users.length} gebruiker${users.length === 1 ? "" : "s"} gevonden.`;
+                usersListElement.innerHTML = users
+                    .map((user) => `<li>${formatUser(user)}</li>`)
+                    .join("");
+            } catch (error) {
+                usersStatusElement.textContent = "Gebruikers laden is mislukt.";
+                usersListElement.innerHTML = `<li>${error.message}</li>`;
+            }
+        }
+
+        formElement.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const payload = {
+                voornaam: voornaamElement.value.trim(),
+                achternaam: achternaamElement.value.trim(),
+            };
+
+            statusElement.textContent = "Verzoek wordt verstuurd naar de API-server...";
+            resultElement.textContent = JSON.stringify(payload, null, 2);
+
+            try {
+                const response = await fetch("http://localhost:3001/api/users", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(payload),
+                });
+
+                const responseText = await response.text();
+                let responseData = responseText;
+
+                if (responseText) {
+                    try {
+                        responseData = JSON.parse(responseText);
+                    } catch (parseError) {
+                        responseData = responseText;
+                    }
+                }
+
+                if (!response.ok) {
+                    throw new Error((responseData && responseData.message) || `Request failed with status ${response.status}`);
+                }
+
+                statusElement.textContent = "Nieuwe gebruiker is succesvol aangemaakt.";
+                resultElement.textContent = typeof responseData === "string"
+                    ? responseData
+                    : JSON.stringify(responseData, null, 2);
+                formElement.reset();
+                loadUsers();
+            } catch (error) {
+                statusElement.textContent = "Opslaan is mislukt.";
+                resultElement.textContent = error.message;
+            }
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>
