@@ -1,3 +1,4 @@
+const { get } = require("../app");
 const lobbyService = require("../services/lobbyService");
 const sessionService = require("../services/sessionService");
 const lobbys = {};
@@ -22,6 +23,7 @@ module.exports = (io) => {
 
         socket.on("joinSession", (data, ack) => {
             const { sessionId, password } = data;
+            const allJoined = sessionService.joinSession(socket, sessionId, sessions);
             const session = sessions[sessionId];
 
             if (!session) {
@@ -40,7 +42,11 @@ module.exports = (io) => {
 
             socket.join(sessionId);
             if (typeof ack === "function") {
-                ack('succ6');
+                ack('success');
+            }
+            
+            if (allJoined) {
+                io.to(sessionId).emit("sessionReady", session);
             }
         });
 
@@ -51,7 +57,16 @@ module.exports = (io) => {
             }
 
             const sessionId = sessionService.migrateLobbyToSession(room.data, sessions);
-            socket.emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password});
+            // socket.emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password});
+            io.to(room.data.id).emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password, playerAmount: room.data.getAllPlayers().length});
+        });
+
+        socket.on('updateScore', (score) => {
+            lobby = getLobbyBySocketId(socket);
+            const HighScoreString = sessionService.updatePlayerScore(socket, score, lobby);
+            
+            // socket.emit("updateScore", HighScoreString);
+            io.to(lobby.data.id).emit("updateScore", HighScoreString);
         });
 
         socket.on("disconnecting", () => {
@@ -60,15 +75,20 @@ module.exports = (io) => {
                 return;
             }
 
-            if (room.type !== "lobby") {
+            if (room.type == "lobby") {
+                    // remove the player from the lobby and delete the lobby if it becomes empty
+                lobbyService.leaveLobby(lobbys, room.data.id, socket.id);
+
+                // notify remaining players in the lobby about the departure
+                io.to(room.data.id).emit("playerLeft", socket.id);
                 return;
+            } else {
+                sessionService.leaveSession(sessions, room.data.id, socket.id);
+
+                // notify remaining players in the session about the departure
+                io.to(room.data.id).emit("playerLeft", socket.id);
             }
 
-            // remove the player from the lobby and delete the lobby if it becomes empty
-            lobbyService.leaveLobby(lobbys, room.data.id, socket.id);
-
-            // notify remaining players in the lobby about the departure
-            io.to(room.data.id).emit("playerLeft", socket.id);
         });
     });
 };
