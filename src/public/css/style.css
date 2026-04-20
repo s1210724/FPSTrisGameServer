@@ -1,0 +1,264 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    list-style-type: none;
+}
+
+:root {
+    --primary-color: rgb(251, 191, 36);
+    --primary-background: #1A1A1A;
+    --secondary-background-color: #212121;
+    --accent-background-color: rgb(251, 191, 36, 0.15);
+}
+
+html,
+body {
+    width: 100%;
+    min-height: 100%;
+}
+
+body {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--primary-background);
+
+    > #lobbyMessage {
+        margin: 1rem 0 1rem 0;
+        font-size: 3rem;
+        color: var(--primary-color);
+        background-color: var(--accent-background-color);
+        border: var(--primary-color) 2px solid;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 70%;
+        height: auto;
+        aspect-ratio: 5/1;
+        max-height: 15%;
+        box-shadow: 0px 0px 10px var(--primary-color);
+    }
+
+    > #playerList {
+        display: flex;
+        justify-content: start;
+        align-items: center;
+        flex-direction: column;
+        width: 100%;
+        min-height: 50%;
+        flex: 5;
+        overflow-y: auto;
+        overflow-x: visible;
+        scrollbar-width: thin;
+        scrollbar-color: var(--primary-color) var(--secondary-background-color);
+
+        > li {
+            width: 70%;
+            height: fit-content;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--secondary-background-color);
+            padding: 1rem 1rem;
+            margin: 1rem 0;
+            border-left: 5px solid var(--primary-color);
+            box-shadow: inset 14px 0 16px -14px var(--primary-color), 5px 5px black;
+
+            > p {
+                color: var(--primary-color);
+                font-size: 2em;
+            }
+        }
+    }
+
+    > div {
+        display: flex;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        flex: 1;
+
+            > #leaveButton {
+            width: 25%;
+            padding: .8rem 1rem;
+            background-color: var(--secondary-background-color);
+            border: var(--primary-color) 2px solid;
+            text-align: center;
+            color: var(--primary-color);
+            font-size: 2rem;
+            text-decoration: none;
+            box-shadow: 5px 5px var(--accent-background-color);
+            transition: .15s ease-in-out;
+
+            &:hover {
+                border-width: 5px;
+                box-shadow: 0px 0px var(--accent-background-color), inset 0px 0px 15px var(--primary-color);
+            }
+        }
+    }
+}
+
+body.api-page-body {
+    overflow: auto;
+    justify-content: flex-start;
+    align-items: stretch;
+    padding: 2rem;
+}
+
+body.api-page-body > .api-page {
+    width: min(100%, 900px);
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: rgba(33, 33, 33, 0.95);
+    border: 2px solid var(--primary-color);
+    box-shadow: 0 0 18px rgba(251, 191, 36, 0.2);
+    color: var(--primary-color);
+}
+
+body.api-page-body > .api-page > h1 {
+    margin-bottom: 1rem;
+}
+
+body.api-page-body > .api-page > #apiStatus {
+    margin-bottom: 1rem;
+    color: #f5f5f5;
+}
+
+body.api-page-body > .api-page > .api-users {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background: rgba(15, 15, 15, 0.9);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+}
+
+body.api-page-body > .api-page > .api-users > h2 {
+    margin-bottom: 0.5rem;
+    color: var(--primary-color);
+}
+
+body.api-page-body > .api-page > .api-users > .api-users-status {
+    margin-bottom: 0.75rem;
+    color: #f5f5f5;
+}
+
+body.api-page-body > .api-page > .api-users > .api-users-list {
+    display: grid;
+    gap: 0.5rem;
+}
+
+body.api-page-body > .api-page > .api-users > .api-users-list > li {
+    padding: 0.75rem 1rem;
+    background: #111111;
+    color: #f8fafc;
+    border-left: 4px solid var(--primary-color);
+}
+
+body.api-page-body > .api-page > .api-form {
+    display: grid;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+body.api-page-body > .api-page > .api-form > label {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+body.api-page-body > .api-page > .api-form > input {
+    width: 100%;
+    padding: 0.85rem 1rem;
+    border: 1px solid rgba(251, 191, 36, 0.45);
+    background: #111111;
+    color: #f8fafc;
+    outline: none;
+}
+
+body.api-page-body > .api-page > .api-form > input:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.15);
+}
+
+body.api-page-body > .api-page > .api-form > button {
+    justify-self: start;
+    padding: 0.85rem 1.25rem;
+    border: 2px solid var(--primary-color);
+    background: var(--secondary-background-color);
+    color: var(--primary-color);
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+body.api-page-body > .api-page > .api-form > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 14px rgba(251, 191, 36, 0.2);
+}
+
+body.api-page-body > .api-page > .api-result {
+    min-height: 240px;
+    max-height: 65vh;
+    overflow: auto;
+    padding: 1rem;
+    background: #0f0f0f;
+    color: #f8fafc;
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+body.api-page-body > .api-page > .api-back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+#playerList::-webkit-scrollbar {
+    width: 10px;
+}
+
+#playerList::-webkit-scrollbar-track {
+    background: var(--secondary-background-color);
+}
+
+#playerList::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 999px;
+}
+
+#playerList::-webkit-scrollbar-thumb:hover {
+    filter: brightness(0.95);
+}
+
+#otherGames {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    pointer-events: none;
+}
+
+#mainGame {
+    position: relative;
+    z-index: 2;
+    width: min(36vw, 320px);
+    height: min(92vh, 640px);
+    aspect-ratio: 1 / 2;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+    background: rgba(15, 23, 42, 0.92);
+    box-shadow: 0 24px 48px rgba(0, 0, 0, 0.45), 0 0 0 1px rgba(148, 163, 184, 0.25);
+    padding: 10px;
+}
+
+#gameCanvas {
+    width: 100%;
+    aspect-ratio: 1/2;
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 8px;
+}
