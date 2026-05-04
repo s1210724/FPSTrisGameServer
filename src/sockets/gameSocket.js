@@ -42,11 +42,11 @@ module.exports = (io) => {
 
             socket.join(sessionId);
             if (typeof ack === "function") {
-                ack('success');
+                ack(socket.id);
             }
             
             if (allJoined) {
-                io.to(sessionId).emit("sessionReady", session);
+                io.to(sessionId).emit("sessionReady", (sessionService.getAllPlayers(session))); // send all players to all players
             }
         });
 
@@ -67,6 +67,36 @@ module.exports = (io) => {
             
             // socket.emit("updateScore", HighScoreString);
             io.to(lobby.data.id).emit("updateScore", HighScoreString);
+        });
+
+        socket.on("blockLocked", (data) => {
+            const room = getLobbyBySocketId(socket);
+            if (!room || room.type !== "session") {
+                return;
+            }
+
+            if (!data || typeof data !== "object") {
+                return;
+            }
+
+            const payload = {
+                playerId: socket.id,
+                type: Number(data.type),
+                rotation: Number(data.rotation),
+                x: Number(data.x),
+                y: Number(data.y),
+                color: data.color
+            };
+
+            if (!Number.isFinite(payload.type)
+                || !Number.isFinite(payload.rotation)
+                || !Number.isFinite(payload.x)
+                || !Number.isFinite(payload.y)
+                || typeof payload.color !== "string") {
+                return;
+            }
+
+            socket.to(room.id).emit("blockLocked", payload);
         });
 
         socket.on("disconnecting", () => {

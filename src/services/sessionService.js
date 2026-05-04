@@ -44,9 +44,14 @@ function updatePlayerScore(socket, score, session) {
     return highScoreString;
 }
 
+function getAllPlayers(session) {
+    return session.getAllPlayers();
+}
+
 module.exports = {
     migrateLobbyToSession,
     joinSession,
     leaveSession,
-    updatePlayerScore
+    updatePlayerScore,
+    getAllPlayers
 };
