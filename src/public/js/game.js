@@ -51,39 +51,10 @@ function emitBlockLock(piece) {
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const { BOARD_COLS: COLS, BOARD_ROWS: ROWS, COLORS, PIECE_ROTATIONS, getFilledCells } = TetrisHelpers;
+
 // Grid settings for a classic 10x20 Tetris board.
-const COLS = 10;
-const ROWS = 20;
 const BLOCK_SIZE = canvas.width / COLS;
-
-// Piece definitions: each matrix cell with value > 0 is a visible block.
-const PIECES = [
-    [[1, 1, 1, 1]],
-    [[1, 1], [1, 1]],
-    [[0, 1, 0], [1, 1, 1]],
-    [[1, 1, 0], [0, 1, 1]],
-    [[0, 1, 1], [1, 1, 0]],
-    [[1, 0, 0], [1, 1, 1]],
-    [[0, 0, 1], [1, 1, 1]]
-];
-
-const COLORS = [
-    "#00B8D4",
-    "#FDD835",
-    "#AB47BC",
-    "#66BB6A",
-    "#EF5350",
-    "#42A5F5",
-    "#FFA726"
-];
-
-const PIECE_ROTATIONS = PIECES.map((shape) => {
-    const rotations = [shape.map((row) => [...row])];
-    for (let i = 1; i < 4; i++) {
-        rotations.push(rotateClockwise(rotations[i - 1]));
-    }
-    return rotations;
-});
 
 // Board stores locked blocks only; the active piece is drawn separately.
 const board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -125,14 +96,6 @@ function getNextPiece() {
 
     const nextType = pieceBag.pop();
     return createPieceFromType(nextType);
-}
-
-function getFilledCells(shape) {
-    return shape.flatMap((row, rowIndex) => {
-        return row
-            .map((cell, colIndex) => (cell ? { row: rowIndex, col: colIndex } : null))
-            .filter(Boolean);
-    });
 }
 
 // Collision checks only the piece cells, which keeps each test very fast.
@@ -181,12 +144,6 @@ function clearLines() {
         }
         broadcastscore();
     }
-}
-
-function rotateClockwise(shape) {
-    return shape[0].map((_, colIndex) => {
-        return shape.map(row => row[colIndex]).reverse();
-    });
 }
 
 function spawnNextPiece() {

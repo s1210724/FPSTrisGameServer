@@ -48,10 +48,20 @@ function getAllPlayers(session) {
     return session.getAllPlayers();
 }
 
+function getPlayerField(session, playerId) {
+    return session.getPlayerField(playerId);
+}
+
+function updatePlayerField(session, playerId, field) {
+    return session.updatePlayerField(playerId, field);
+}
+
 module.exports = {
     migrateLobbyToSession,
     joinSession,
     leaveSession,
     updatePlayerScore,
-    getAllPlayers
+    getAllPlayers,
+    getPlayerField,
+    updatePlayerField
 };

@@ -56,6 +56,20 @@ class sessionModel {
         return Object.keys(this.#players);
     }
 
+    getPlayerField(playerId) {
+        if (playerId in this.#players) {
+            return this.#players[playerId].board;
+        }
+        return null;
+    }
+
+    updatePlayerField(playerId, field) {
+        if (playerId in this.#players) {
+            this.#players[playerId].board = field;
+            return true;
+        }        
+        return false;
+    }
 }
 
 module.exports = { sessionModel };

@@ -1,11 +1,24 @@
 const { get } = require("../app");
 const lobbyService = require("../services/lobbyService");
 const sessionService = require("../services/sessionService");
+const { createEmptyField } = require("../public/js/shared/tetrisHelpers");
+const { applyLockedBlockToField } = require("../public/js/shared/fieldSync");
 const lobbys = {};
 const sessions = {};
 const duels = {};
+const snapshotIntervalMs = 5000;
 
 module.exports = (io) => {
+    setInterval(() => {
+        Object.values(sessions).forEach((session) => {
+            if (!session || !session.fields) {
+                return;
+            }
+
+            io.to(session.id).emit("sessionState", session.fields); 
+        });
+    }, snapshotIntervalMs);
+
     io.on("connection", (socket) => {
         socket.on("joinLobby", (data, ack) => {
             // add player to a lobby or create one if all are full on none exist
@@ -41,12 +54,23 @@ module.exports = (io) => {
             }
 
             socket.join(sessionId);
+
+            session.fields = session.fields || {};
+            sessionService.getAllPlayers(session).forEach((playerId) => {
+                if (!session.fields[playerId]) {
+                    session.fields[playerId] = createEmptyField();
+                }
+            });
+
             if (typeof ack === "function") {
                 ack(socket.id);
             }
+
+            socket.emit("sessionState", session.fields);
             
             if (allJoined) {
                 io.to(sessionId).emit("sessionReady", (sessionService.getAllPlayers(session))); // send all players to all players
+                io.to(sessionId).emit("sessionState", session.fields);
             }
         });
 
@@ -96,7 +120,14 @@ module.exports = (io) => {
                 return;
             }
 
-            socket.to(room.id).emit("blockLocked", payload);
+            const playerField = sessionService.getPlayerField(room.data, payload.playerId);
+            if (playerField) {
+                const newPlayerField = applyLockedBlockToField(playerField, payload);
+                const updateSuccess = sessionService.updatePlayerField(room.data, payload.playerId, newPlayerField);
+                if (updateSuccess) {
+                    socket.to(room.id).emit("blockLocked", payload);
+                }
+            }
         });
 
         socket.on("disconnecting", () => {
@@ -114,6 +145,9 @@ module.exports = (io) => {
                 return;
             } else {
                 sessionService.leaveSession(sessions, room.data.id, socket.id);
+                if (room.data.fields) {
+                    delete room.data.fields[socket.id];
+                }
 
                 // notify remaining players in the session about the departure
                 io.to(room.data.id).emit("playerLeft", socket.id);

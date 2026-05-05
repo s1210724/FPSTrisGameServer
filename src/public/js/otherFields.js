@@ -5,8 +5,8 @@ let layout = {};
 
 if (otherGamesCanvas && mainGameContainer) {
 	const otherGamesCtx = otherGamesCanvas.getContext("2d");
-	const BOARD_COLS = 10;
-	const BOARD_ROWS = 20;
+	const { BOARD_COLS, BOARD_ROWS, createEmptyField, isValidField } = TetrisHelpers;
+	const { applyLockedBlockToField } = FieldSync;
 	const BOARD_ASPECT_RATIO = 1 / 2;
 
 	// session var comes from game.js
@@ -137,81 +137,6 @@ if (otherGamesCanvas && mainGameContainer) {
 
     layout = pickLayout();
 
-	function createEmptyField() {
-		return Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(0));
-	}
-
-	function rotateClockwise(shape) {
-		return shape[0].map((_, colIndex) => shape.map((row) => row[colIndex]).reverse());
-	}
-
-	function getRotationShape(type, rotation) {
-		const baseShape = PIECES[type];
-		if (!baseShape) {
-			return null;
-		}
-
-		const normalizedRotation = ((rotation % 4) + 4) % 4;
-		let shape = baseShape.map((row) => [...row]);
-		for (let i = 0; i < normalizedRotation; i++) {
-			shape = rotateClockwise(shape);
-		}
-
-		return shape;
-	}
-
-	function otherClearLines(field) {
-		for (let row = BOARD_ROWS - 1; row >= 0; row--) {
-			if (field[row].every((cell) => cell !== 0)) {
-				field.splice(row, 1);
-				field.unshift(Array(BOARD_COLS).fill(0));
-				row++;
-			}
-		}
-	}
-
-	function applyLockedBlockToField(payload) {
-		if (!payload || !payload.playerId) {
-			return;
-		}
-
-		const shape = getRotationShape(payload.type, payload.rotation);
-		if (!shape) {
-			return;
-		}
-
-		if (!isValidField(playerFields[payload.playerId])) {
-			playerFields[payload.playerId] = createEmptyField();
-		}
-
-		const field = playerFields[payload.playerId];
-		shape.forEach((row, rowIndex) => {
-			row.forEach((cell, colIndex) => {
-				if (!cell) {
-					return;
-				}
-
-				const x = payload.x + colIndex;
-				const y = payload.y + rowIndex;
-				if (x < 0 || x >= BOARD_COLS || y < 0 || y >= BOARD_ROWS) {
-					return;
-				}
-
-				field[y][x] = payload.color;
-			});
-		});
-
-		otherClearLines(field);
-	}
-
-	function isValidField(field) {
-		return (
-			Array.isArray(field)
-			&& field.length === BOARD_ROWS
-			&& field.every((row) => Array.isArray(row) && row.length === BOARD_COLS)
-		);
-	}
-
 	function drawBoardGrid(slot, boardWidth, boardHeight) {
 		otherGamesCtx.fillStyle = "rgba(15, 23, 42, 0.8)";
 		otherGamesCtx.fillRect(slot.x, slot.y, boardWidth, boardHeight);
@@ -281,13 +206,31 @@ if (otherGamesCanvas && mainGameContainer) {
 		renderOtherFields();
 	}
 
-	function fillPlayerFields(players) {
-		players.forEach(player => {
-			console.log(player);
-			if(player == playerId) {
+	function syncSessionFields(fields) {
+		Object.keys(playerFields).forEach((id) => {
+			delete playerFields[id];
+		});
+
+		Object.entries(fields || {}).forEach(([id, field]) => {
+			if (id === playerId || !isValidField(field)) {
 				return;
 			}
-			playerFields[player] = Array.from({ length: BOARD_ROWS }, () => Array(BOARD_COLS).fill(0));
+
+			playerFields[id] = field;
+		});
+
+		redraw();
+	}
+
+	function fillPlayerFields(players) {
+		players.forEach((player) => {
+			if (player === playerId) {
+				return;
+			}
+
+			if (!isValidField(playerFields[player])) {
+				playerFields[player] = createEmptyField();
+			}
 		});
 
 		redraw();
@@ -299,16 +242,22 @@ if (otherGamesCanvas && mainGameContainer) {
 	redraw();
 
 	socket.on("playerJoined", (playerData) => {
-		if (!playerData || !playerData.id) {
+		const playerId = typeof playerData === "string" ? playerData : playerData && playerData.id;
+		if (!playerId) {
 			return;
 		}
 
-		playerFields[playerData.id] = isValidField(playerData.field) ? playerData.field : createEmptyField();
+		playerFields[playerId] = isValidField(playerData && playerData.field) ? playerData.field : createEmptyField();
 		redraw();
     });
 
+	socket.on("sessionState", (fields) => {
+		syncSessionFields(fields);
+	});
+
 	socket.on("playerLeft", (playerData) => {
-		if (!playerData || !playerData.id) {
+		const playerId = typeof playerData === "string" ? playerData : playerData && playerData.id;
+		if (!playerId) {
 			return;
 		}
 
@@ -317,7 +266,16 @@ if (otherGamesCanvas && mainGameContainer) {
     });
 
 	socket.on("blockLocked", (payload) => {
-		applyLockedBlockToField(payload);
+		const remotePlayerId = payload && payload.playerId;
+		if (!remotePlayerId) {
+			return;
+		}
+
+		if (!isValidField(playerFields[remotePlayerId])) {
+			playerFields[remotePlayerId] = createEmptyField();
+		}
+
+		applyLockedBlockToField(playerFields[remotePlayerId], payload);
 		redraw();
 	});
 }
