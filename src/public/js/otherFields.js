@@ -5,10 +5,12 @@ let layout = {};
 
 if (otherGamesCanvas && mainGameContainer) {
 	const otherGamesCtx = otherGamesCanvas.getContext("2d");
-	const BOARD_COLS = 10;
-	const BOARD_ROWS = 20;
+	const { BOARD_COLS, BOARD_ROWS, createEmptyField, isValidField } = TetrisHelpers;
+	const { applyLockedBlockToField } = FieldSync;
 	const BOARD_ASPECT_RATIO = 1 / 2;
-	const MAX_OTHER_FIELDS = (session.playerAmount ? Math.ceil(session.playerAmount / 2) * 2 : 56);
+
+	// session var comes from game.js
+	const MAX_OTHER_FIELDS = (session.playerAmount ? Math.ceil((session.playerAmount - 1) / 2) * 2 : 56);
 	const MIN_BOARD_WIDTH = 22;
 	const CELL_GAP = 10;
 	const SAFE_MARGIN = 20;
@@ -135,29 +137,42 @@ if (otherGamesCanvas && mainGameContainer) {
 
     layout = pickLayout();
 
-    function updatePlayerFields(slot, index, boardWidth, boardHeight) {
-        otherGamesCtx.fillStyle = "rgba(15, 23, 42, 0.8)";
-		otherGamesCtx.fillRect(slot.x, slot.y, boardWidth, boardHeight);
-
-		otherGamesCtx.strokeStyle = "rgba(148, 163, 184, 0.35)";
-		otherGamesCtx.lineWidth = 1;
-		otherGamesCtx.strokeRect(slot.x + 0.5, slot.y + 0.5, boardWidth - 1, boardHeight - 1);
-
-		otherGamesCtx.fillStyle = "rgba(255, 255, 255, 1)";
-		otherGamesCtx.textAlign = "center";
-		otherGamesCtx.textBaseline = "middle";
-        otherGamesCtx.font = "8px Arial";
-		otherGamesCtx.fillText(`player Found`, slot.x + boardWidth / 2, slot.y + boardHeight / 2);
-    }
-
-	function drawMiniField(slot, index, boardWidth, boardHeight) {
-
+	function drawBoardGrid(slot, boardWidth, boardHeight) {
 		otherGamesCtx.fillStyle = "rgba(15, 23, 42, 0.8)";
 		otherGamesCtx.fillRect(slot.x, slot.y, boardWidth, boardHeight);
 
 		otherGamesCtx.strokeStyle = "rgba(148, 163, 184, 0.35)";
 		otherGamesCtx.lineWidth = 1;
 		otherGamesCtx.strokeRect(slot.x + 0.5, slot.y + 0.5, boardWidth - 1, boardHeight - 1);
+	}
+
+	function drawPlayerField(slot, field, boardWidth, boardHeight) {
+		drawBoardGrid(slot, boardWidth, boardHeight);
+
+		const cellWidth = boardWidth / BOARD_COLS;
+		const cellHeight = boardHeight / BOARD_ROWS;
+
+		field.forEach((row, r) => {
+			row.forEach((cell, c) => {
+				if (!cell) {
+					return;
+				}
+
+				otherGamesCtx.fillStyle = typeof cell === "string" ? cell : "#e2e8f0";
+				otherGamesCtx.fillRect(
+					slot.x + c * cellWidth,
+					slot.y + r * cellHeight,
+					Math.max(1, cellWidth - 1),
+					Math.max(1, cellHeight - 1)
+				);
+			});
+		});
+	}
+
+	function drawMiniField(slot, index, boardWidth, boardHeight) {
+		void index;
+
+		drawBoardGrid(slot, boardWidth, boardHeight);
 
 		otherGamesCtx.fillStyle = "rgba(255, 255, 255, 1)";
 		otherGamesCtx.textAlign = "center";
@@ -173,16 +188,52 @@ if (otherGamesCanvas && mainGameContainer) {
 			return;
 		}
 
-		const maxViablePairCount = Math.floor(Math.min(MAX_OTHER_FIELDS, layout.slots.length) / 2) * 2;
-		const drawCount = maxViablePairCount;
+		const orderedFields = Object.values(playerFields).filter((field) => isValidField(field));
+		const drawCount = Math.min(MAX_OTHER_FIELDS, layout.slots.length);
 		for (let i = 0; i < drawCount; i++) {
-			drawMiniField(layout.slots[i], i, layout.boardWidth, layout.boardHeight);
+			const field = orderedFields[i];
+			if (field) {
+				drawPlayerField(layout.slots[i], field, layout.boardWidth, layout.boardHeight);
+			} else {
+				drawMiniField(layout.slots[i], i, layout.boardWidth, layout.boardHeight);
+			}
 		}
 	}
 
 	function redraw() {
 		setCanvasSize();
+		layout = pickLayout();
 		renderOtherFields();
+	}
+
+	function syncSessionFields(fields) {
+		Object.keys(playerFields).forEach((id) => {
+			delete playerFields[id];
+		});
+
+		Object.entries(fields || {}).forEach(([id, field]) => {
+			if (id === playerId || !isValidField(field)) {
+				return;
+			}
+
+			playerFields[id] = field;
+		});
+
+		redraw();
+	}
+
+	function fillPlayerFields(players) {
+		players.forEach((player) => {
+			if (player === playerId) {
+				return;
+			}
+
+			if (!isValidField(playerFields[player])) {
+				playerFields[player] = createEmptyField();
+			}
+		});
+
+		redraw();
 	}
 
 	window.addEventListener("resize", redraw);
@@ -191,13 +242,40 @@ if (otherGamesCanvas && mainGameContainer) {
 	redraw();
 
 	socket.on("playerJoined", (playerData) => {
-		console.log("test");
-        debugger;
-        playerFields[playerData.id] = Object.keys(playerFields).length || 0;
-        updatePlayerFields(layout.slots[playerFields[playerData.id]], playerFields[playerData.id], layout.boardWidth, layout.boardHeight);
+		const playerId = typeof playerData === "string" ? playerData : playerData && playerData.id;
+		if (!playerId) {
+			return;
+		}
+
+		playerFields[playerId] = isValidField(playerData && playerData.field) ? playerData.field : createEmptyField();
+		redraw();
     });
 
+	socket.on("sessionState", (fields) => {
+		syncSessionFields(fields);
+	});
+
 	socket.on("playerLeft", (playerData) => {
-        delete playerFields[playerData.id];
+		const playerId = typeof playerData === "string" ? playerData : playerData && playerData.id;
+		if (!playerId) {
+			return;
+		}
+
+		delete playerFields[playerId];
+		redraw();
     });
+
+	socket.on("blockLocked", (payload) => {
+		const remotePlayerId = payload && payload.playerId;
+		if (!remotePlayerId) {
+			return;
+		}
+
+		if (!isValidField(playerFields[remotePlayerId])) {
+			playerFields[remotePlayerId] = createEmptyField();
+		}
+
+		applyLockedBlockToField(playerFields[remotePlayerId], payload);
+		redraw();
+	});
 }

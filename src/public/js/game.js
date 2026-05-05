@@ -3,6 +3,8 @@ const socket = io();
 
 const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 
+let playerId = "";
+
 /* start socket logic */
 
 socket.emit("joinSession", { sessionId: session.id, password: session.password }, (response) => {
@@ -12,9 +14,11 @@ socket.emit("joinSession", { sessionId: session.id, password: session.password }
     }
 
     console.log("Joined session successfully:", response);
+    playerId = response;
 });
 
-socket.on("sessionReady", () => {
+socket.on("sessionReady", (session) => {
+    fillPlayerFields(session);
     spawnNextPiece();
     requestAnimationFrame(gameLoop);
 })
@@ -27,36 +31,30 @@ function broadcastscore() {
     socket.emit("updateScore", score );
 }
 
+function emitBlockLock(piece) {
+    if (!piece) {
+        return;
+    }
+
+    socket.emit("blockLocked", {
+        sessionId: session.id,
+        x: piece.x,
+        y: piece.y,
+        rotation: piece.rotation,
+        color: piece.color,
+        type: piece.type
+    });
+}
+
 /* end socket logic */
 
 const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
+const { BOARD_COLS: COLS, BOARD_ROWS: ROWS, COLORS, PIECE_ROTATIONS, getFilledCells } = TetrisHelpers;
+
 // Grid settings for a classic 10x20 Tetris board.
-const COLS = 10;
-const ROWS = 20;
 const BLOCK_SIZE = canvas.width / COLS;
-
-// Piece definitions: each matrix cell with value > 0 is a visible block.
-const PIECES = [
-    [[1, 1, 1, 1]],
-    [[1, 1], [1, 1]],
-    [[0, 1, 0], [1, 1, 1]],
-    [[1, 1, 0], [0, 1, 1]],
-    [[0, 1, 1], [1, 1, 0]],
-    [[1, 0, 0], [1, 1, 1]],
-    [[0, 0, 1], [1, 1, 1]]
-];
-
-const COLORS = [
-    "#00B8D4",
-    "#FDD835",
-    "#AB47BC",
-    "#66BB6A",
-    "#EF5350",
-    "#42A5F5",
-    "#FFA726"
-];
 
 // Board stores locked blocks only; the active piece is drawn separately.
 const board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -70,8 +68,11 @@ let isGameOver = false;
 let pieceBag = [];
 
 function createPieceFromType(type) {
-    const shape = PIECES[type].map(row => [...row]);
+    const rotation = 0;
+    const shape = PIECE_ROTATIONS[type][rotation];
     return {
+        type,
+        rotation,
         shape,
         color: COLORS[type],
         x: Math.floor(COLS / 2) - Math.ceil(shape[0].length / 2),
@@ -95,14 +96,6 @@ function getNextPiece() {
 
     const nextType = pieceBag.pop();
     return createPieceFromType(nextType);
-}
-
-function getFilledCells(shape) {
-    return shape.flatMap((row, rowIndex) => {
-        return row
-            .map((cell, colIndex) => (cell ? { row: rowIndex, col: colIndex } : null))
-            .filter(Boolean);
-    });
 }
 
 // Collision checks only the piece cells, which keeps each test very fast.
@@ -153,12 +146,6 @@ function clearLines() {
     }
 }
 
-function rotateClockwise(shape) {
-    return shape[0].map((_, colIndex) => {
-        return shape.map(row => row[colIndex]).reverse();
-    });
-}
-
 function spawnNextPiece() {
     activePiece = getNextPiece();
     const spawnCollides = collides(activePiece, activePiece.x, activePiece.y);
@@ -176,9 +163,11 @@ function movePiece(deltaX) {
 }
 
 function rotatePiece() {
-    const rotated = rotateClockwise(activePiece.shape);
+    const nextRotation = (activePiece.rotation + 1) % PIECE_ROTATIONS[activePiece.type].length;
+    const rotated = PIECE_ROTATIONS[activePiece.type][nextRotation];
     const canRotateInPlace = !collides(activePiece, activePiece.x, activePiece.y, rotated);
     if (canRotateInPlace) {
+        activePiece.rotation = nextRotation;
         activePiece.shape = rotated;
         return;
     }
@@ -187,6 +176,7 @@ function rotatePiece() {
     const canKickLeft = !collides(activePiece, activePiece.x - 1, activePiece.y, rotated);
     if (canKickLeft) {
         activePiece.x -= 1;
+        activePiece.rotation = nextRotation;
         activePiece.shape = rotated;
         return;
     }
@@ -194,6 +184,7 @@ function rotatePiece() {
     const canKickRight = !collides(activePiece, activePiece.x + 1, activePiece.y, rotated);
     if (canKickRight) {
         activePiece.x += 1;
+        activePiece.rotation = nextRotation;
         activePiece.shape = rotated;
     }
 }
@@ -206,6 +197,7 @@ function stepDown() {
         return;
     }
 
+    emitBlockLock(activePiece);
     lockPiece(activePiece);
     clearLines();
     spawnNextPiece();
@@ -231,14 +223,14 @@ function drawBoard() {
     ctx.fillStyle = "#0F172A";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for (let r = 0; r < ROWS; r++) {
-        for (let c = 0; c < COLS; c++) {
-            const cell = board[r][c];
+    // Draw every cell that is not empty in the board grid.
+    board.forEach((row, r) => {
+        row.forEach((cell, c) => {
             if (cell !== 0) {
                 drawCell(c, r, cell);
             }
-        }
-    }
+        });
+    });
 }
 
 function drawPiece(piece) {

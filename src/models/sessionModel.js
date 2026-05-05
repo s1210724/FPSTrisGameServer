@@ -9,10 +9,15 @@ class sessionModel {
     }
 
     addPlayer(socket) {
+        // standard row and cols for tetris
+        const ROWS = 20;
+        const COLS = 10;
+
+        // add player to session with initial score of 0 and empty board
         this.#players[socket.id] = {
             id: socket.id,
             score: 0,
-            board: []
+            board: Array.from({ length: ROWS }, () => Array(COLS).fill(0))
         };
 
         return this.checkIfAllPlayersJoined();
@@ -31,7 +36,6 @@ class sessionModel {
         return `${playerWithHighScore.id} had the highscore with ${playerWithHighScore.score} points!`;
     }
 
-
     checkIfAllPlayersJoined() {
         return this.getAmountOfPlayers() == this.amountOfPlayers;
     }
@@ -48,6 +52,24 @@ class sessionModel {
         return false;
     }
 
+    getAllPlayers() {
+        return Object.keys(this.#players);
+    }
+
+    getPlayerField(playerId) {
+        if (playerId in this.#players) {
+            return this.#players[playerId].board;
+        }
+        return null;
+    }
+
+    updatePlayerField(playerId, field) {
+        if (playerId in this.#players) {
+            this.#players[playerId].board = field;
+            return true;
+        }        
+        return false;
+    }
 }
 
 module.exports = { sessionModel };
