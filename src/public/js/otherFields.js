@@ -232,7 +232,6 @@ if (otherGamesCanvas && mainGameContainer) {
 				playerFields[player] = createEmptyField();
 			}
 		});
-
 		redraw();
 	}
 

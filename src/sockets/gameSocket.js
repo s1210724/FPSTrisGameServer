@@ -11,11 +11,12 @@ const snapshotIntervalMs = 5000;
 module.exports = (io) => {
     setInterval(() => {
         Object.values(sessions).forEach((session) => {
-            if (!session || !session.fields) {
+            const allPlayerFields = sessionService.getPlayerFields(session);
+            if (!session || !allPlayerFields) {
                 return;
             }
 
-            io.to(session.id).emit("sessionState", session.fields); 
+            io.to(session.id).emit("sessionState", allPlayerFields); 
         });
     }, snapshotIntervalMs);
 
@@ -55,22 +56,17 @@ module.exports = (io) => {
 
             socket.join(sessionId);
 
-            session.fields = session.fields || {};
-            sessionService.getAllPlayers(session).forEach((playerId) => {
-                if (!session.fields[playerId]) {
-                    session.fields[playerId] = createEmptyField();
-                }
-            });
-
             if (typeof ack === "function") {
                 ack(socket.id);
             }
 
-            socket.emit("sessionState", session.fields);
+            const allPlayerFields = sessionService.getPlayerFields(session);
+
+            socket.emit("sessionState", allPlayerFields);
             
             if (allJoined) {
-                io.to(sessionId).emit("sessionReady", (sessionService.getAllPlayers(session))); // send all players to all players
-                io.to(sessionId).emit("sessionState", session.fields);
+                io.to(sessionId).emit("sessionReady", (sessionService.getAllPlayers(session)));
+                io.to(sessionId).emit("sessionState", allPlayerFields);
             }
         });
 

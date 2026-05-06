@@ -52,6 +52,11 @@ function getPlayerField(session, playerId) {
     return session.getPlayerField(playerId);
 }
 
+function getPlayerFields(session) {
+    return session.getPlayerFields();
+}
+
+
 function updatePlayerField(session, playerId, field) {
     return session.updatePlayerField(playerId, field);
 }
@@ -63,5 +68,6 @@ module.exports = {
     updatePlayerScore,
     getAllPlayers,
     getPlayerField,
+    getPlayerFields,
     updatePlayerField
 };

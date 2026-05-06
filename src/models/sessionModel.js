@@ -63,6 +63,17 @@ class sessionModel {
         return null;
     }
 
+    getPlayerFields() {
+        if (Object.keys(this.#players).length === 0) {
+            return null;
+        }
+        const fields = {};
+        Object.entries(this.#players).forEach(([playerId, playerData]) => {
+            fields[playerId] = playerData.board;
+        });
+        return fields;
+    }
+
     updatePlayerField(playerId, field) {
         if (playerId in this.#players) {
             this.#players[playerId].board = field;
