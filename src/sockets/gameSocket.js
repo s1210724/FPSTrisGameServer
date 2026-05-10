@@ -1,14 +1,50 @@
 const { get } = require("../app");
-const lobbyService = require("../services/lobbyService");
-const sessionService = require("../services/sessionService");
+const { verifyToken } = require('../auth/jwtValidator');
 const { createEmptyField } = require("../public/js/shared/tetrisHelpers");
 const { applyLockedBlockToField } = require("../public/js/shared/fieldSync");
+const lobbyService = require("../services/lobbyService");
+const sessionService = require("../services/sessionService");
 const lobbys = {};
 const sessions = {};
 const duels = {};
 const snapshotIntervalMs = 5000;
 
+function getCookieValue(cookieHeader, cookieName) {
+    if (!cookieHeader) {
+        return null;
+    }
+
+    const cookies = cookieHeader.split(";").map((entry) => entry.trim());
+    const match = cookies.find((entry) => entry.startsWith(`${cookieName}=`));
+    if (!match) {
+        return null;
+    }
+
+    return decodeURIComponent(match.slice(cookieName.length + 1));
+}
+
 module.exports = (io) => {
+    io.use(async (socket, next) => {
+        try {
+            const token = socket.handshake.auth?.token
+                || getCookieValue(socket.request.headers.cookie, "token");
+
+            if (token) {
+                const payload = await verifyToken(token);
+                console.log('Token verified successfully:', payload);
+                socket.user = payload;
+            } else {
+                console.log("No token provided, allowing guest connection");
+            }
+            next();
+        }
+        catch (error) {
+            console.error('Token verification failed:', error);
+            console.log("Allowing guest connection instead");
+            next();
+        }
+    });
+
     setInterval(() => {
         Object.values(sessions).forEach((session) => {
             const allPlayerFields = sessionService.getPlayerFields(session);
@@ -21,12 +57,28 @@ module.exports = (io) => {
     }, snapshotIntervalMs);
 
     io.on("connection", (socket) => {
+        // Log if connection is logged in or guest
+        if (socket.user) {
+            console.log(
+                `Player connected: ${socket.user}`
+            );
+        } else {
+            console.log(
+                `Guest player connected: ${socket.id} (guest)`
+            );
+        }
+
+
         socket.on("joinLobby", (data, ack) => {
             // add player to a lobby or create one if all are full on none exist
             const lobby = lobbyService.joinLobby(lobbys, socket);
 
             // notify existing players in the lobby about the new player and then subscribe the new player to the lobby room for future updates
-            io.to(lobby.id).emit("newConnection", socket.id);
+            if (socket.user) {
+                io.to(lobby.id).emit("newConnection", socket.user.username);
+            } else {
+                io.to(lobby.id).emit("newConnection", socket.id);
+            }
             socket.join(lobby.id);
 
             // acknowledge the join with the current player list in the lobby
@@ -133,11 +185,15 @@ module.exports = (io) => {
             }
 
             if (room.type == "lobby") {
-                    // remove the player from the lobby and delete the lobby if it becomes empty
-                lobbyService.leaveLobby(lobbys, room.data.id, socket.id);
-
+                // remove the player from the lobby and delete the lobby if it becomes empty
                 // notify remaining players in the lobby about the departure
-                io.to(room.data.id).emit("playerLeft", socket.id);
+                if (socket.user) {
+                    lobbyService.leaveLobby(lobbys, room.data.id, socket.user.username);
+                    io.to(room.data.id).emit("playerLeft", socket.user.username);
+                } else {
+                    lobbyService.leaveLobby(lobbys, room.data.id, socket.id);
+                    io.to(room.data.id).emit("playerLeft", socket.id);
+                }
                 return;
             } else {
                 sessionService.leaveSession(sessions, room.data.id, socket.id);

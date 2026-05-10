@@ -1,5 +1,7 @@
 // Reuse one shared socket across all page scripts to avoid duplicate connections.
-const socket = io();
+const socket = io({
+    withCredentials: true,
+});
 
 const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 

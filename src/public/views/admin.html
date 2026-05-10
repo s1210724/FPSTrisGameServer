@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FPSTris Admin Panel</title>
+</head>
+<body>
+    <main>
+        <h1>Admin Panel</h1>
+
+        <nav>
+            <ul>
+                <li><a href="/">Home</a></li>
+                <li><a href="/logged-in">Dashboard</a></li>
+                <li><a href="/" onclick="logout()">Logout</a></li>
+            </ul>
+        </nav>
+
+        <section id="adminContent">
+            <h2>Administration</h2>
+            <p>Welcome, Administrator. You have access to sensitive operations.</p>
+
+            <h3>System Status</h3>
+            <div id="systemStatus">
+                <p>Loading system info...</p>
+            </div>
+
+            <h3>User Management</h3>
+            <p>User management features would go here.</p>
+
+            <h3>Settings</h3>
+            <p>Advanced settings for the application would go here.</p>
+        </section>
+    </main>
+
+    <script>
+        function logout() {
+            fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
+                .then(() => {
+                    window.location.href = '/';
+                })
+                .catch(() => {
+                    window.location.href = '/';
+                });
+        }
+
+        async function loadAdminInfo() {
+            try {
+                const response = await fetch('/api/auth/user', {
+                    method: 'GET',
+                    credentials: 'include',
+                });
+
+                if (!response.ok) {
+                    window.location.href = '/login';
+                    return;
+                }
+
+                const user = await response.json();
+
+                // Verify admin claim
+                if (!Array.isArray(user.claims) || !user.claims.includes('admin')) {
+                    window.location.href = '/logged-in';
+                    return;
+                }
+
+                // Load some basic system info
+                document.getElementById('systemStatus').innerHTML = `
+                    <p><strong>Current User:</strong> ${user.username}</p>
+                    <p><strong>User ID:</strong> ${user.userId}</p>
+                    <p><strong>Claims:</strong> ${user.claims.join(', ')}</p>
+                `;
+            } catch (error) {
+                console.error('Failed to load admin info:', error);
+                window.location.href = '/login';
+            }
+        }
+
+        loadAdminInfo();
+    </script>
+</body>
+</html>

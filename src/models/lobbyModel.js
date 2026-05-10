@@ -14,7 +14,11 @@ class lobbyModel {
             return false;
         }
 
-        this.#players.push(socket.id);
+        if (socket.user) {
+            this.#players.push(socket.user.username);
+        } else {
+            this.#players.push(socket.id);
+        }
         this.checkFull();
         return true;
     }

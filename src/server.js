@@ -1,3 +1,4 @@
+require('dotenv').config();
 const http = require("http");
 const app = require("./app");
 const { Server } = require("socket.io");
@@ -13,6 +14,6 @@ const io = new Server(server, {
 // sockets koppelen
 require("./sockets/gameSocket.js")(io);
 
-server.listen(3000, () => {
-    console.log("Server + Socket.IO draait op http://localhost:3000");
+server.listen(process.env.PORT, () => {
+    console.log(`Server + Socket.IO draait op http://localhost:${process.env.PORT}`);
 });

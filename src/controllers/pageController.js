@@ -4,6 +4,18 @@ exports.getHomePage = (req, res) => {
     res.sendFile(pageService.getViewPath("index.html"));
 };
 
+exports.getLoginPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("login.html"));
+};
+
+exports.getLoggedInPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("logged-in.html"));
+};
+
+exports.getAdminPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("admin.html"));
+};
+
 exports.getGamePage = (req, res) => {
     res.sendFile(pageService.getViewPath("game.html"));
 };

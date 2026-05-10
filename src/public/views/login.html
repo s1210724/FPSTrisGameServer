@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FPSTris Login</title>
+</head>
+<body>
+    <main>
+        <h1>Login</h1>
+
+        <p id="loginStatus">Enter your username and password.</p>
+
+        <form id="loginForm">
+            <div>
+                <label for="username">Username</label>
+                <input
+                    id="username"
+                    name="username"
+                    type="text"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    spellcheck="false"
+                    maxlength="64"
+                    required
+                >
+            </div>
+
+            <div>
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="current-password"
+                    maxlength="256"
+                    required
+                >
+            </div>
+
+            <button id="loginButton" type="submit">Login</button>
+        </form>
+
+        <p>
+            <a href="/">Back to home</a>
+        </p>
+    </main>
+
+    <script src="/js/login.js"></script>
+</body>
+</html>
