@@ -90,3 +90,24 @@ exports.postLogin = async (req, res) => {
         });
     }
 };
+
+exports.getUser = (req, res) => {
+    if (!req.user) {
+        return res.status(401).json({
+            message: "Not authenticated",
+        });
+    }
+
+    return res.json({
+        userId: req.user.userId,
+        username: req.user.username,
+        claims: req.user.claims || [],
+    });
+};
+
+exports.postLogout = (req, res) => {
+    res.setHeader("Set-Cookie", "token=; HttpOnly; Path=/; Max-Age=0; SameSite=Lax");
+    return res.json({
+        message: "Logged out successfully",
+    });
+};
