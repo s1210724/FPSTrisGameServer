@@ -1,4 +1,8 @@
-const socket = io();
+// Reuse one shared socket across all page scripts to avoid duplicate connections.
+const socket = io({
+    withCredentials: true,
+});
+
 const playerListElement = document.getElementById("playerList");
 const playerList = [];
 
