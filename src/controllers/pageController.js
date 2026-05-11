@@ -8,6 +8,10 @@ exports.getLoginPage = (req, res) => {
     res.sendFile(pageService.getViewPath("login.html"));
 };
 
+exports.getRegisterPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("register.html"));
+};
+
 exports.getLoggedInPage = (req, res) => {
     res.sendFile(pageService.getViewPath("logged-in.html"));
 };

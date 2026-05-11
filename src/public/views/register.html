@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FPSTris Login</title>
+    <title>FPSTris Register</title>
 </head>
 <body>
     <main>
-        <h1>Login</h1>
+        <h1>Register</h1>
 
-        <p id="loginStatus">Enter your username and password.</p>
+        <p id="registerStatus">Create a new account to get started.</p>
 
-        <form id="loginForm">
+        <form id="registerForm">
             <div>
                 <label for="username">Username</label>
                 <input
@@ -25,22 +25,34 @@
             </div>
 
             <div>
-                <label for="password">Password</label>
+                <label for="email">Email</label>
                 <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
+                    id="email"
+                    name="email"
+                    type="email"
+                    autocomplete="email"
                     maxlength="256"
                     required
                 >
             </div>
 
-            <button id="loginButton" type="submit">Login</button>
+            <div>
+                <label for="password">Password</label>
+                <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autocomplete="new-password"
+                    maxlength="256"
+                    required
+                >
+            </div>
+
+            <button id="registerButton" type="submit">Register</button>
         </form>
 
         <p>
-            Don't have an account? <a href="/register">Register here</a>
+            Already have an account? <a href="/login">Login here</a>
         </p>
 
         <p>
@@ -48,6 +60,6 @@
         </p>
     </main>
 
-    <script src="/js/login.js"></script>
+    <script src="/js/register.js"></script>
 </body>
 </html>

@@ -3,10 +3,11 @@ const router = express.Router();
 
 const pageController = require("../controllers/pageController");
 const authController = require("../controllers/authController");
-const { pageAuthMiddleware, pageAdminMiddleware } = require("../middleware/pageAuthMiddleware");
+const { pageAuthMiddleware, pageAdminMiddleware, pageGuestMiddleware } = require("../middleware/pageAuthMiddleware");
 
 router.get("/", pageController.getHomePage);
-router.get("/login", pageController.getLoginPage);
+router.get("/login", pageGuestMiddleware, pageController.getLoginPage);
+router.get("/register", pageGuestMiddleware, pageController.getRegisterPage);
 router.get("/logged-in", pageAuthMiddleware, pageController.getLoggedInPage);
 router.get("/admin", pageAdminMiddleware, pageController.getAdminPage);
 router.get("/game", pageController.getGamePage);
