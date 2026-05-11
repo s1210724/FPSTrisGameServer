@@ -91,6 +91,39 @@ exports.postLogin = async (req, res) => {
     }
 };
 
+exports.postRegister = async (req, res) => {
+    try {
+        const apiServerUrl = `${process.env.API_SERVER_URL}/api/users/create`;
+        const proxyResponse = await proxyJsonRequest(apiServerUrl, req.body);
+
+        let responseData = {};
+        if (proxyResponse.body) {
+            try {
+                responseData = JSON.parse(proxyResponse.body);
+            } catch (error) {
+                responseData = { message: proxyResponse.body };
+            }
+        }
+
+        if (proxyResponse.statusCode < 200 || proxyResponse.statusCode >= 300) {
+            return res.status(proxyResponse.statusCode).json(responseData);
+        }
+
+        if (responseData.token) {
+            setAuthCookie(res, responseData.token);
+        }
+
+        return res.json({
+            message: responseData.message || "Registration successful",
+        });
+    } catch (error) {
+        console.error("Registration proxy failed:", error);
+        return res.status(500).json({
+            message: "Unable to complete registration.",
+        });
+    }
+};
+
 exports.getUser = (req, res) => {
     if (!req.user) {
         return res.status(401).json({
