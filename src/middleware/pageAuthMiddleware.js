@@ -55,7 +55,26 @@ async function pageAdminMiddleware(req, res, next) {
     }
 }
 
+async function pageGuestMiddleware(req, res, next) {
+    try {
+        const token = getCookieValue(req.headers.cookie, "token");
+
+        if (!token) {
+            // No token, proceed to show guest page (login/register)
+            return next();
+        }
+
+        const payload = await verifyToken(token);
+        // User is already authenticated, redirect to home
+        return res.redirect("/");
+    } catch (error) {
+        // Invalid/expired token, proceed to show guest page
+        return next();
+    }
+}
+
 module.exports = {
     pageAuthMiddleware,
     pageAdminMiddleware,
+    pageGuestMiddleware,
 };
