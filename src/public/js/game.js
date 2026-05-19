@@ -67,6 +67,7 @@ let dropAccumulatorMs = 0;
 let lastTime = 0;
 let score = 0;
 let isGameOver = false;
+let iframeInjected = false;
 let pieceBag = [];
 
 function createPieceFromType(type) {
@@ -153,6 +154,30 @@ function spawnNextPiece() {
     const spawnCollides = collides(activePiece, activePiece.x, activePiece.y);
     if (spawnCollides) {
         isGameOver = true;
+    }
+}
+
+function injectMultiplayerIframe() {
+    if (iframeInjected) return;
+    iframeInjected = true;
+
+    const iframe = document.createElement('iframe');
+    iframe.src = '/multiplayerfps';
+    iframe.style.position = 'fixed';
+    iframe.style.top = '0';
+    iframe.style.left = '0';
+    iframe.style.width = '100%';
+    iframe.style.height = '100%';
+    iframe.style.border = 'none';
+    iframe.style.zIndex = 999999;
+    iframe.allow = 'fullscreen; autoplay; microphone; camera;';
+
+    // Append and try to request fullscreen for a full takeover effect.
+    document.body.appendChild(iframe);
+    // Prefer requesting fullscreen on the iframe element if supported.
+    const requestFS = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.mozRequestFullScreen || iframe.msRequestFullscreen;
+    if (requestFS) {
+        try { requestFS.call(iframe); } catch (e) { /* ignore */ }
     }
 }
 
@@ -304,6 +329,10 @@ function gameLoop(timestamp) {
         drawPiece(activePiece);
     }
     drawHud();
+
+    if (isGameOver && !iframeInjected) {
+        injectMultiplayerIframe();
+    }
 
     requestAnimationFrame(gameLoop);
 }
