@@ -32,3 +32,7 @@ exports.getApiCallPage = (req, res) => {
     res.sendFile(pageService.getViewPath("apicall.html"));
 };
 
+exports.getMultiplayerFpsPage = (req, res) => {
+    res.sendFile(pageService.getViewPath("multiplayerfps.html"));
+};
+

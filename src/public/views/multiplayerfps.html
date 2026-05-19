@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>FPS Singleplayer - Game 4</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            background: black;
+        }
+
+        #crosshair {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 24px;
+            color: white;
+            pointer-events: none;
+        }
+    </style>
+        <script type="importmap">
+        {
+            "imports": {
+                "three": "https://cdn.jsdelivr.net/npm/three@0.183.2/+esm",
+                "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.183.2/examples/jsm/"
+            }
+        }
+    </script>
+</head>
+
+<body>
+    <div id="crosshair">+</div>
+    <script type="module" src="/js/multiplayerfps/main.js"></script>
+</body>
+
+</html>
