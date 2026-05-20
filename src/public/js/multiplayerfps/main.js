@@ -1,14 +1,13 @@
 import { createRenderingContext, startRenderLoop } from "./rendering.js";
 import { buildWorldOctree, createArena } from "./arena.js";
 import { createPlayer, setupPlayerActions, setupPlayerInput, updatePlayer } from "./player.js";
-import { addDemoObstacles } from "./obstacles.js";
+import { buildObstaclesFromData } from "./obstacles.js";
 import { initializeRemotePlayers, setRemotePlayerTarget, updateRemotePlayers, removeRemotePlayer } from "./remotePlayers.js";
 
 const socket = io({ withCredentials: true });
 const POSITION_UPDATE_MS = 50;
 
 let playerId = "";
-let duelCredentials = null;
 
 window.addEventListener("message", (event) => {
     if (event.origin !== window.location.origin) {
@@ -16,16 +15,19 @@ window.addEventListener("message", (event) => {
     }
 
     const data = event.data;
-    if (!data || data.type !== "duelCredentials") {
+    if (!data || data.type !== "duelData") {
         return;
     }
 
-    const { duelId, password } = data;
+    const { duelId, password, obstacles } = data;
     if (!duelId || !password) {
         return;
     }
 
-    duelCredentials = { duelId, password };
+    if (Array.isArray(obstacles)) {
+        buildObstaclesFromData(scene, obstacleBoxes, hittableObjects, obstacles);
+    }
+
     socket.emit("joinDuel", { duelId, password }, (response) => {
         if (response?.error) {
             console.warn("Multiplayer FPS duel join failed:", response.error);
@@ -39,7 +41,6 @@ window.addEventListener("message", (event) => {
 
 socket.on("duelReady", (data) => {
     console.log("Duel ready:", data);
-    // TODO: use duel data for initialization if needed
 });
 
 socket.on("updatePlayerPos", (data) => {
@@ -80,7 +81,6 @@ const obstacleBoxes = [];
 const hittableObjects = [];
 
 initializeRemotePlayers(scene);
-addDemoObstacles(scene, obstacleBoxes, hittableObjects);
 
 const player = createPlayer(camera);
 setupPlayerInput(camera, player);

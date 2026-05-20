@@ -5,6 +5,7 @@ const { applyLockedBlockToField } = require("../public/js/shared/fieldSync");
 const lobbyService = require("../services/lobbyService");
 const sessionService = require("../services/sessionService");
 const duelService = require("../services/duelService");
+const obstacleService = require("../services/obstacleService");
 const lobbys = {};
 const sessions = {};
 const duels = {};
@@ -183,23 +184,24 @@ module.exports = (io) => {
 
             const otherPlayerId = waitingPlayers[0];
             const duel = duelService.createDuel();
+            duel.obstacles = obstacleService.createObstacleLayout();
             duels[duel.id] = duel;
+
+            const payload = {
+                duelId: duel.id,
+                password: duel.password,
+                obstacles: duel.obstacles
+            };
 
             const otherSocket = io.sockets.sockets.get(otherPlayerId);
             if (otherSocket) {
                 sessionService.setPlayerState(session, otherPlayerId, "dueling");
-                otherSocket.emit("duelCreated", {
-                    duelId: duel.id,
-                    password: duel.password
-                });
+                otherSocket.emit("duelCreated", payload);
                 otherSocket.emit("waitingForDuel");
             }
 
             sessionService.setPlayerState(session, playerId, "dueling");
-            socket.emit("duelCreated", {
-                duelId: duel.id,
-                password: duel.password
-            });
+            socket.emit("duelCreated", payload);
         });
 
         socket.on("migrateToSession", () => {

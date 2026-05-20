@@ -8,7 +8,7 @@ const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 let playerId = "";
 let duelShouldInject = false;
 let playerLostSent = false;
-let duelCredentials = null;
+let duelData = null;
 
 /* start socket logic */
 
@@ -29,13 +29,15 @@ socket.on("sessionReady", (session) => {
 })
 
 socket.on("duelCreated", (data) => {
+    console.log("Parent received duelCreated:", data);
     if (!data || !data.duelId || !data.password) {
         return;
     }
 
-    duelCredentials = {
+    duelData = {
         duelId: data.duelId,
-        password: data.password
+        password: data.password,
+        obstacles: Array.isArray(data.obstacles) ? data.obstacles : []
     };
     duelShouldInject = true;
     if (isGameOver && !iframeInjected) {
@@ -199,14 +201,15 @@ function injectMultiplayerIframe() {
     iframe.allow = 'fullscreen; autoplay; microphone; camera;';
 
     iframe.addEventListener('load', () => {
-        if (!duelCredentials) {
+        if (!duelData) {
             return;
         }
         iframe.contentWindow.postMessage(
             {
-                type: 'duelCredentials',
-                duelId: duelCredentials.duelId,
-                password: duelCredentials.password
+                type: 'duelData',
+                duelId: duelData.duelId,
+                password: duelData.password,
+                obstacles: duelData.obstacles
             },
             window.location.origin
         );
