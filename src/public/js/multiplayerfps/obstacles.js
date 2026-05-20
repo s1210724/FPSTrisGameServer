@@ -79,3 +79,29 @@ function createRandomTetromino(scene, obstacleBoxes, hittableObjects, groupIndex
     scene.add(piece);
     hittableObjects.push(piece);
 }
+
+export function buildObstaclesFromData(scene, obstacleBoxes, hittableObjects, obstacles) {
+    if (!Array.isArray(obstacles)) {
+        return;
+    }
+
+    obstacles.forEach((obstacle, index) => {
+        const group = new THREE.Group();
+        const material = new THREE.MeshStandardMaterial({ color: obstacle.color });
+
+        obstacle.blocks.forEach((block) => {
+            const geometry = new THREE.BoxGeometry(1, 1, 1);
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.position.set(block.x, block.y, block.z);
+            group.add(mesh);
+            obstacleBoxes.push(new THREE.Box3(
+                new THREE.Vector3(mesh.position.x - 0.5, mesh.position.y - 0.5, mesh.position.z - 0.5),
+                new THREE.Vector3(mesh.position.x + 0.5, mesh.position.y + 0.5, mesh.position.z + 0.5)
+            ));
+        });
+
+        group.name = obstacle.id || `duel-obstacle-${index}`;
+        scene.add(group);
+        hittableObjects.push(group);
+    });
+}

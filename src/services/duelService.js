@@ -12,11 +12,25 @@ function joinDuel(duels, socket, duelId, password) {
     if (!duel || duel.password !== password) {
         return null;
     }
-    duel.addplayer(socket);
+
+    const added = duel.addPlayer(socket);
+    if (!added) {
+        return null;
+    }
+
     return duel;
+}
+
+function updatePlayerLocation(duels, socket, duelId, location) {
+    const duel = duels[duelId];
+    if (!duel) {
+        return false;
+    }
+    return duel.updatePlayerLocation(socket.id, location);
 }
 
 module.exports = {
     createDuel,
-    joinDuel
+    joinDuel,
+    updatePlayerLocation
 };

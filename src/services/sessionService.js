@@ -9,13 +9,51 @@ function migrateLobbyToSession(lobby, sessions) {
 }
 
 function joinSession(socket, sessionId, sessions) {
-    session = sessions[sessionId];
+    const session = sessions[sessionId];
     if (!session) {
         return null;
     }
 
     const allJoined = session.addPlayer(socket);
     return allJoined;
+}
+
+function setPlayerState(session, playerId, state) {
+    if (!session || !playerId) {
+        return false;
+    }
+    return session.setPlayerState(playerId, state);
+}
+
+function getPlayerState(session, playerId) {
+    if (!session || !playerId) {
+        return null;
+    }
+    return session.getPlayerState(playerId);
+}
+
+function getPlayersByState(session, state) {
+    if (!session) {
+        return [];
+    }
+    return session.getPlayersByState(state);
+}
+
+function getPlayersByStates(session, states) {
+    if (!session) {
+        return [];
+    }
+    return session.getPlayersByStates(states);
+}
+
+function getAvailableDuelPlayers(session) {
+    if (!session) {
+        return [];
+    }
+    // Only 'reviving' and 'alive' players have not yet used a duel.
+    const living = session.getPlayersByStates("alive");
+    const reviving = session.getPlayersByStates("reviving");
+    return [...living, ...reviving];
 }
 
 function leaveSession(sessions, sessionId, socketId) {
@@ -34,13 +72,13 @@ function leaveSession(sessions, sessionId, socketId) {
 }
 
 function updatePlayerScore(socket, score, session) {
-    if (!session || session.type !== "session") {
+    if (!session) {
         return null;
     }
 
-    session.data.updatePlayerScore(socket.id, score);
+    session.updatePlayerScore(socket.id, score);
 
-    const highScoreString = session.data.getHighScoreString();
+    const highScoreString = session.getHighScoreString();
     return highScoreString;
 }
 
@@ -56,7 +94,6 @@ function getPlayerFields(session) {
     return session.getPlayerFields();
 }
 
-
 function updatePlayerField(session, playerId, field) {
     return session.updatePlayerField(playerId, field);
 }
@@ -64,6 +101,11 @@ function updatePlayerField(session, playerId, field) {
 module.exports = {
     migrateLobbyToSession,
     joinSession,
+    setPlayerState,
+    getPlayerState,
+    getPlayersByState,
+    getPlayersByStates,
+    getAvailableDuelPlayers,
     leaveSession,
     updatePlayerScore,
     getAllPlayers,
