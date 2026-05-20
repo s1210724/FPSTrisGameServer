@@ -6,6 +6,18 @@
     "start": "node src/server.js",
     "test": "jest"
   },
+  "jest": {
+    "reporters": [
+      "default",
+      [
+        "jest-junit",
+        {
+          "outputDirectory": "reports/junit",
+          "outputName": "junit.xml"
+        }
+      ]
+    ]
+  },
   "dependencies": {
     "dotenv": "^17.4.2",
     "express": "^4.18.2",
@@ -14,6 +26,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
-    "jest": "^30.3.0"
+    "jest": "^30.3.0",
+    "jest-junit": "^16.0.0"
   }
 }
