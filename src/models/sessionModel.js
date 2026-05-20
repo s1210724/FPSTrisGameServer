@@ -13,14 +13,42 @@ class sessionModel {
         const ROWS = 20;
         const COLS = 10;
 
-        // add player to session with initial score of 0 and empty board
+        // add player to session with initial score of 0, empty board, and alive state
         this.#players[socket.id] = {
             id: socket.id,
             score: 0,
-            board: Array.from({ length: ROWS }, () => Array(COLS).fill(0))
+            board: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
+            state: "alive"
         };
 
         return this.checkIfAllPlayersJoined();
+    }
+
+    setPlayerState(playerId, state) {
+        if (playerId in this.#players) {
+            this.#players[playerId].state = state;
+            return true;
+        }
+        return false;
+    }
+
+    getPlayerState(playerId) {
+        if (playerId in this.#players) {
+            return this.#players[playerId].state;
+        }
+        return null;
+    }
+
+    getPlayersByState(state) {
+        return Object.entries(this.#players)
+            .filter(([, playerData]) => playerData.state === state)
+            .map(([playerId]) => playerId);
+    }
+
+    getPlayersByStates(states) {
+        return Object.entries(this.#players)
+            .filter(([, playerData]) => states.includes(playerData.state))
+            .map(([playerId]) => playerId);
     }
 
     updatePlayerScore(socketId, score) {

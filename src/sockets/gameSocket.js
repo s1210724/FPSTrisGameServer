@@ -69,14 +69,6 @@ module.exports = (io) => {
             );
         }
 
-        // // create dummy duel for testing
-        // const duel = duelService.createDuel();
-        // duels[duel.id] = duel;
-        // console.log(`Created duel with ID: ${duel.id} and password: ${duel.password}`);
-        // duelService.joinDuel(duels, socket, duel.id, duel.password);
-        // console.log(duel);
-
-
         socket.on("joinLobby", (data, ack) => {
             // add player to a lobby or create one if all are full on none exist
             const lobby = lobbyService.joinLobby(lobbys, socket);
@@ -130,6 +122,86 @@ module.exports = (io) => {
             }
         });
 
+        socket.on("joinDuel", (data, ack) => {
+            const { duelId, password } = data || {};
+            const duel = duelService.joinDuel(duels, socket, duelId, password);
+
+            if (!duel) {
+                if (typeof ack === "function") {
+                    ack({ error: "Duel not found or invalid password" });
+                }
+                return;
+            }
+
+            socket.join(duelId);
+
+            if (typeof ack === "function") {
+                ack({ playerId: socket.id });
+            }
+
+            const playerCount = Object.keys(duel.players).length;
+            if (playerCount === 2) {
+                io.to(duelId).emit("duelReady", {
+                    duelId,
+                    players: Object.keys(duel.players)
+                });
+            }
+        });
+
+        socket.on("playerLost", (data) => {
+            const room = getLobbyBySocketId(socket);
+            if (!room || room.type !== "session") {
+                return;
+            }
+
+            const session = room.data;
+            const playerId = socket.id;
+            const currentState = sessionService.getPlayerState(session, playerId);
+
+            if (currentState === "revived" || currentState === "lost" || currentState === "gameOver") {
+                sessionService.setPlayerState(session, playerId, "gameOver");
+                socket.emit("finalGameOver");
+                return;
+            }
+
+            const availableDuelPlayers = sessionService.getAvailableDuelPlayers(session).filter((id) => id !== playerId);
+            const hasEligiblePartner = availableDuelPlayers.length > 0;
+
+            if (!hasEligiblePartner) {
+                sessionService.setPlayerState(session, playerId, "gameOver");
+                socket.emit("finalGameOver");
+                return;
+            }
+
+            sessionService.setPlayerState(session, playerId, "reviving");
+            socket.emit("waitingForDuel");
+
+            const waitingPlayers = sessionService.getPlayersByState(session, "reviving").filter((id) => id !== playerId);
+            if (waitingPlayers.length === 0) {
+                return;
+            }
+
+            const otherPlayerId = waitingPlayers[0];
+            const duel = duelService.createDuel();
+            duels[duel.id] = duel;
+
+            const otherSocket = io.sockets.sockets.get(otherPlayerId);
+            if (otherSocket) {
+                sessionService.setPlayerState(session, otherPlayerId, "dueling");
+                otherSocket.emit("duelCreated", {
+                    duelId: duel.id,
+                    password: duel.password
+                });
+                otherSocket.emit("waitingForDuel");
+            }
+
+            sessionService.setPlayerState(session, playerId, "dueling");
+            socket.emit("duelCreated", {
+                duelId: duel.id,
+                password: duel.password
+            });
+        });
+
         socket.on("migrateToSession", () => {
             const room = getLobbyBySocketId(socket);
             if (!room || room.type !== "lobby") {
@@ -139,6 +211,36 @@ module.exports = (io) => {
             const sessionId = sessionService.migrateLobbyToSession(room.data, sessions);
             // socket.emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password});
             io.to(room.data.id).emit("sessionMigrated", {id: sessionId, password: sessions[sessionId].password, playerAmount: room.data.getAllPlayers().length});
+        });
+
+        socket.on("updatePlayerPos", (location) => {
+            const room = getLobbyBySocketId(socket);
+            if (!room || (room.type !== "session" && room.type !== "duel")) {
+                return;
+            }
+
+            if (!location || typeof location !== "object") {
+                return;
+            }
+
+            const payload = {
+                playerId: socket.id,
+                x: Number(location.x),
+                y: Number(location.y),
+                z: Number(location.z),
+                yaw: Number(location.yaw),
+                pitch: Number(location.pitch)
+            };
+
+            if (![payload.x, payload.y, payload.z, payload.yaw, payload.pitch].every(Number.isFinite)) {
+                return;
+            }
+
+            if (room.type === "duel") {
+                duelService.updatePlayerLocation(duels, socket, room.id, payload);
+            }
+
+            socket.to(room.id).emit("updatePlayerPos", payload);
         });
 
         socket.on('updateScore', (score) => {
@@ -203,7 +305,9 @@ module.exports = (io) => {
                     io.to(room.data.id).emit("playerLeft", socket.id);
                 }
                 return;
-            } else {
+            }
+
+            if (room.type == "session") {
                 sessionService.leaveSession(sessions, room.data.id, socket.id);
                 if (room.data.fields) {
                     delete room.data.fields[socket.id];
@@ -211,6 +315,23 @@ module.exports = (io) => {
 
                 // notify remaining players in the session about the departure
                 io.to(room.data.id).emit("playerLeft", socket.id);
+                return;
+            }
+
+            if (room.type == "duel") {
+                const duel = room.data;
+                Object.keys(duel.players).forEach((playerKey) => {
+                    if (duel.players[playerKey]?.socketId === socket.id) {
+                        delete duel.players[playerKey];
+                    }
+                });
+
+                if (Object.keys(duel.players).length === 0) {
+                    delete duels[room.data.id];
+                } else {
+                    io.to(room.data.id).emit("playerLeft", socket.id);
+                }
+                return;
             }
 
         });
@@ -235,6 +356,15 @@ function getLobbyBySocketId(socket) {
             type: "session",
             id: sessionId,
             data: sessions[sessionId],
+        };
+    }
+
+    const duelId = joinedRoomIds.find((roomId) => Boolean(duels[roomId]));
+    if (duelId) {
+        return {
+            type: "duel",
+            id: duelId,
+            data: duels[duelId],
         };
     }
 

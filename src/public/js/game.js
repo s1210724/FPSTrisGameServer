@@ -6,6 +6,9 @@ const socket = io({
 const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 
 let playerId = "";
+let duelShouldInject = false;
+let playerLostSent = false;
+let duelCredentials = null;
 
 /* start socket logic */
 
@@ -24,6 +27,29 @@ socket.on("sessionReady", (session) => {
     spawnNextPiece();
     requestAnimationFrame(gameLoop);
 })
+
+socket.on("duelCreated", (data) => {
+    if (!data || !data.duelId || !data.password) {
+        return;
+    }
+
+    duelCredentials = {
+        duelId: data.duelId,
+        password: data.password
+    };
+    duelShouldInject = true;
+    if (isGameOver && !iframeInjected) {
+        injectMultiplayerIframe();
+    }
+});
+
+socket.on("waitingForDuel", () => {
+    console.log("Waiting for a duel partner...");
+});
+
+socket.on("finalGameOver", () => {
+    console.log("Final game over: no duel available.");
+});
 
 socket.on("updateScore", (data) => {
     console.log(data);
@@ -172,9 +198,21 @@ function injectMultiplayerIframe() {
     iframe.style.zIndex = 999999;
     iframe.allow = 'fullscreen; autoplay; microphone; camera;';
 
-    // Append and try to request fullscreen for a full takeover effect.
+    iframe.addEventListener('load', () => {
+        if (!duelCredentials) {
+            return;
+        }
+        iframe.contentWindow.postMessage(
+            {
+                type: 'duelCredentials',
+                duelId: duelCredentials.duelId,
+                password: duelCredentials.password
+            },
+            window.location.origin
+        );
+    });
+
     document.body.appendChild(iframe);
-    // Prefer requesting fullscreen on the iframe element if supported.
     const requestFS = iframe.requestFullscreen || iframe.webkitRequestFullscreen || iframe.mozRequestFullScreen || iframe.msRequestFullscreen;
     if (requestFS) {
         try { requestFS.call(iframe); } catch (e) { /* ignore */ }
@@ -330,7 +368,12 @@ function gameLoop(timestamp) {
     }
     drawHud();
 
-    if (isGameOver && !iframeInjected) {
+    if (isGameOver && !playerLostSent) {
+        playerLostSent = true;
+        socket.emit("playerLost", { sessionId: session.id });
+    }
+
+    if (isGameOver && duelShouldInject && !iframeInjected) {
         injectMultiplayerIframe();
     }
 
