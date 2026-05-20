@@ -4,6 +4,7 @@ const { createEmptyField } = require("../public/js/shared/tetrisHelpers");
 const { applyLockedBlockToField } = require("../public/js/shared/fieldSync");
 const lobbyService = require("../services/lobbyService");
 const sessionService = require("../services/sessionService");
+const duelService = require("../services/duelService");
 const lobbys = {};
 const sessions = {};
 const duels = {};
@@ -67,6 +68,13 @@ module.exports = (io) => {
                 `Guest player connected: ${socket.id} (guest)`
             );
         }
+
+        // // create dummy duel for testing
+        // const duel = duelService.createDuel();
+        // duels[duel.id] = duel;
+        // console.log(`Created duel with ID: ${duel.id} and password: ${duel.password}`);
+        // duelService.joinDuel(duels, socket, duel.id, duel.password);
+        // console.log(duel);
 
 
         socket.on("joinLobby", (data, ack) => {
@@ -134,7 +142,7 @@ module.exports = (io) => {
         });
 
         socket.on('updateScore', (score) => {
-            lobby = getLobbyBySocketId(socket);
+            const lobby = getLobbyBySocketId(socket);
             const HighScoreString = sessionService.updatePlayerScore(socket, score, lobby);
             
             // socket.emit("updateScore", HighScoreString);
