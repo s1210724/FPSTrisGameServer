@@ -2,42 +2,15 @@ import { createRenderingContext, startRenderLoop } from "./rendering.js";
 import { buildWorldOctree, createArena } from "./arena.js";
 import { createPlayer, setupPlayerActions, setupPlayerInput, updatePlayer } from "./player.js";
 import { buildObstaclesFromData } from "./obstacles.js";
-import { initializeRemotePlayers, setRemotePlayerTarget, updateRemotePlayers, removeRemotePlayer } from "./remotePlayers.js";
+import { initializeRemotePlayers, setRemotePlayerTarget, updateRemotePlayers, removeRemotePlayer, getRemotePlayerMeshes } from "./remotePlayers.js";
 
-const socket = io({ withCredentials: true });
-const POSITION_UPDATE_MS = 50;
+const socket = window.parent?.sharedSocket;
+if (!socket) {
+    throw new Error("Shared parent socket is not available in the iframe.");
+}
 
 let playerId = "";
-
-window.addEventListener("message", (event) => {
-    if (event.origin !== window.location.origin) {
-        return;
-    }
-
-    const data = event.data;
-    if (!data || data.type !== "duelData") {
-        return;
-    }
-
-    const { duelId, password, obstacles } = data;
-    if (!duelId || !password) {
-        return;
-    }
-
-    if (Array.isArray(obstacles)) {
-        buildObstaclesFromData(scene, obstacleBoxes, hittableObjects, obstacles);
-    }
-
-    socket.emit("joinDuel", { duelId, password }, (response) => {
-        if (response?.error) {
-            console.warn("Multiplayer FPS duel join failed:", response.error);
-            return;
-        }
-
-        console.log("Joined duel successfully:", response);
-        playerId = response.playerId;
-    });
-});
+const POSITION_UPDATE_MS = 50;
 
 socket.on("duelReady", (data) => {
     console.log("Duel ready:", data);
@@ -62,6 +35,40 @@ socket.on("playerLeft", (playerId) => {
     removeRemotePlayer(playerId);
 });
 
+socket.on("hitResult", (data) => {
+    console.log("Iframe frame received hit result:", data);
+});
+
+window.addEventListener("message", (event) => {
+    if (event.origin !== window.location.origin) {
+        return;
+    }
+
+    const message = event.data;
+    if (!message || typeof message !== "object" || message.type !== "duelData") {
+        return;
+    }
+
+    const { duelId, password, obstacles } = message;
+    if (Array.isArray(obstacles)) {
+        buildObstaclesFromData(scene, obstacleBoxes, hittableObjects, obstacles);
+    }
+
+    if (!duelId || !password) {
+        return;
+    }
+
+    socket.emit("joinDuel", { duelId, password }, (response) => {
+        if (response?.error) {
+            console.warn("Multiplayer FPS duel join failed:", response.error);
+            return;
+        }
+
+        console.log("Joined duel successfully:", response);
+        playerId = response.playerId;
+    });
+});
+
 function emitPlayerPos(player, camera) {
     if (!player?.collider?.end) return;
 
@@ -84,7 +91,7 @@ initializeRemotePlayers(scene);
 
 const player = createPlayer(camera);
 setupPlayerInput(camera, player);
-setupPlayerActions(camera, hittableObjects);
+setupPlayerActions(camera, () => [...hittableObjects, ...getRemotePlayerMeshes()]);
 
 setInterval(() => {
     emitPlayerPos(player, camera);

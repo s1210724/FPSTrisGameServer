@@ -5,11 +5,22 @@ const { applyLockedBlockToField } = require("../public/js/shared/fieldSync");
 const lobbyService = require("../services/lobbyService");
 const sessionService = require("../services/sessionService");
 const duelService = require("../services/duelService");
+const hitscanService = require("../services/hitscanService");
 const obstacleService = require("../services/obstacleService");
 const lobbys = {};
 const sessions = {};
 const duels = {};
 const snapshotIntervalMs = 5000;
+
+function getSessionForSocket(socket) {
+    const joinedRoomIds = [...socket.rooms].filter((roomId) => roomId !== socket.id);
+    const sessionId = joinedRoomIds.find((roomId) => Boolean(sessions[roomId]));
+    return sessionId ? sessions[sessionId] : null;
+}
+
+function endDuel(io, duelId) {
+    hitscanService.endDuel(io, duels, duelId);
+}
 
 function getCookieValue(cookieHeader, cookieName) {
     if (!cookieHeader) {
@@ -245,12 +256,81 @@ module.exports = (io) => {
             socket.to(room.id).emit("updatePlayerPos", payload);
         });
 
+        socket.on("hitscanShot", (shotData, ack) => {
+            const room = getLobbyBySocketId(socket);
+            if (!room || room.type !== "duel") {
+                console.log(room);
+                if (typeof ack === "function") {
+                    ack({ hit: false, error: "Not currently in a duel" });
+                }
+                return;
+            }
+
+            const duel = room.data;
+            const shooterId = socket.id;
+            const opponentId = Object.keys(duel.players).find((id) => id !== shooterId);
+            if (!opponentId) {
+                if (typeof ack === "function") {
+                    ack({ hit: false, error: "No opponent found" });
+                }
+                return;
+            }
+
+            const shooter = duel.players[shooterId];
+            const target = duel.players[opponentId];
+            if (!shooter || !target) {
+                if (typeof ack === "function") {
+                    ack({ hit: false, error: "Invalid duel players" });
+                }
+                return;
+            }
+
+            if (!shotData || typeof shotData !== "object" || !shotData.origin || !shotData.direction) {
+                if (typeof ack === "function") {
+                    ack({ hit: false, error: "Invalid shot data" });
+                }
+                return;
+            }
+
+            const origin = shotData.origin;
+            const direction = shotData.direction;
+            const hit = hitscanService.validateHitscanShot(origin, direction, target.location);
+            if (!hit) {
+                if (typeof ack === "function") {
+                    ack({ hit: false });
+                }
+                return;
+            }
+
+            const session = getSessionForSocket(socket);
+            const hitResolved = hitscanService.resolveHitscanStatus(session, shooterId, opponentId);
+            if (!hitResolved) {
+                if (typeof ack === "function") {
+                    ack({ hit: false, error: "Could not resolve hit status" });
+                }
+                return;
+            }
+
+            const resultPayload = hitscanService.createHitResultPayload(shooterId);
+            io.to(room.id).emit("hitResult", resultPayload);
+            if (session) {
+                io.to(session.id).emit("sessionState", sessionService.getPlayerFields(session));
+            }
+            hitscanService.endDuel(io, duels, room.id);
+
+            if (typeof ack === "function") {
+                ack({ hit: true, targetId: opponentId });
+            }
+        });
+
         socket.on('updateScore', (score) => {
-            const lobby = getLobbyBySocketId(socket);
-            const HighScoreString = sessionService.updatePlayerScore(socket, score, lobby);
-            
-            // socket.emit("updateScore", HighScoreString);
-            io.to(lobby.data.id).emit("updateScore", HighScoreString);
+            const room = getLobbyBySocketId(socket);
+            if (!room || room.type !== "session") {
+                return;
+            }
+
+            const HighScoreString = sessionService.updatePlayerScore(socket, score, room.data);
+            io.to(room.data.id).emit("updateScore", HighScoreString);
         });
 
         socket.on("blockLocked", (data) => {
@@ -352,21 +432,21 @@ function getLobbyBySocketId(socket) {
         };
     }
 
-    const sessionId = joinedRoomIds.find((roomId) => Boolean(sessions[roomId]));
-    if (sessionId) {
-        return {
-            type: "session",
-            id: sessionId,
-            data: sessions[sessionId],
-        };
-    }
-
     const duelId = joinedRoomIds.find((roomId) => Boolean(duels[roomId]));
     if (duelId) {
         return {
             type: "duel",
             id: duelId,
             data: duels[duelId],
+        };
+    }
+
+    const sessionId = joinedRoomIds.find((roomId) => Boolean(sessions[roomId]));
+    if (sessionId) {
+        return {
+            type: "session",
+            id: sessionId,
+            data: sessions[sessionId],
         };
     }
 
