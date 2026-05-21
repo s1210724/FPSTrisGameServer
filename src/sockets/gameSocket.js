@@ -190,7 +190,14 @@ module.exports = (io) => {
 
             if (currentState === "revived" || currentState === "lost" || currentState === "gameOver") {
                 sessionService.setPlayerState(session, playerId, "gameOver");
-                socket.emit("finalGameOver");
+                const activePlayers = sessionService.getPlayersByStates(session, ["alive", "revived"]);
+
+                if (activePlayers.length === 0) {
+                    finalizeSession(io, sessions, session);
+                } else {
+                    socket.emit("finalGameOver");
+                }
+
                 return;
             }
 
