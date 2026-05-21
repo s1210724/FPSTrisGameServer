@@ -80,6 +80,10 @@ socket.on("updateScore", (data) => {
     console.log(data);
 });
 
+socket.on("finalWinner", (data) => {
+    console.log("Final winner results:", data);
+});
+
 socket.on("hitResult", (data) => {
     console.log("Parent frame received hit result:", data);
     if (data?.hit && data.shooterId === playerId) {
