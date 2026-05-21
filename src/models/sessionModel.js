@@ -66,6 +66,17 @@ class sessionModel {
         return `${playerWithHighScore.id} had the highscore with ${playerWithHighScore.score} points!`;
     }
 
+    getTopPlayersByScore(limit = 5) {
+        return Object.values(this.#players)
+            .sort((a, b) => b.score - a.score)
+            .slice(0, limit)
+            .map((playerData) => ({
+                playerId: playerData.id,
+                score: playerData.score,
+                state: playerData.state
+            }));
+    }
+
     checkIfAllPlayersJoined() {
         return this.getAmountOfPlayers() == this.amountOfPlayers;
     }

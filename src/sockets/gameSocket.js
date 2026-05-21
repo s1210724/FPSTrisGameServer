@@ -36,6 +36,24 @@ function getCookieValue(cookieHeader, cookieName) {
     return decodeURIComponent(match.slice(cookieName.length + 1));
 }
 
+function finalizeSession(io, sessions, session) {
+    const finalRanking = sessionService.getTopPlayersByScore(session, 5);
+    io.to(session.id).emit("finalWinner", { topPlayers: finalRanking });
+
+    const roomSockets = io.sockets.adapter.rooms.get(session.id);
+    if (roomSockets) {
+        for (const socketId of roomSockets) {
+            const s = io.sockets.sockets.get(socketId);
+            if (s) {
+                s.leave(session.id);
+                s.disconnect(true);
+            }
+        }
+    }
+
+    delete sessions[session.id];
+}
+
 module.exports = (io) => {
     io.use(async (socket, next) => {
         try {
@@ -181,6 +199,9 @@ module.exports = (io) => {
 
             if (!hasEligiblePartner) {
                 sessionService.setPlayerState(session, playerId, "gameOver");
+
+                finalizeSession(io, sessions, session);
+
                 socket.emit("finalGameOver");
                 return;
             }
@@ -324,6 +345,7 @@ module.exports = (io) => {
         });
 
         socket.on('updateScore', (score) => {
+            console.log('test');
             const room = getLobbyBySocketId(socket);
             if (!room || room.type !== "session") {
                 return;

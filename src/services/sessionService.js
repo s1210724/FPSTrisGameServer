@@ -105,6 +105,13 @@ function clearPlayerField(session, playerId) {
     return session.clearPlayerField(playerId);
 }
 
+function getTopPlayersByScore(session, limit = 5) {
+    if (!session) {
+        return [];
+    }
+    return session.getTopPlayersByScore(limit);
+}
+
 module.exports = {
     migrateLobbyToSession,
     joinSession,
@@ -119,5 +126,6 @@ module.exports = {
     getPlayerField,
     getPlayerFields,
     updatePlayerField,
-    clearPlayerField
+    clearPlayerField,
+    getTopPlayersByScore
 };
