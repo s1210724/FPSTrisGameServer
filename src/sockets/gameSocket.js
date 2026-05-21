@@ -345,7 +345,6 @@ module.exports = (io) => {
         });
 
         socket.on('updateScore', (score) => {
-            console.log('test');
             const room = getLobbyBySocketId(socket);
             if (!room || room.type !== "session") {
                 return;
