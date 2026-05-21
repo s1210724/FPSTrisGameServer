@@ -14,6 +14,7 @@ function createRemotePlayerMesh() {
     const mesh = new THREE.Mesh(geometry, material);
     mesh.castShadow = false;
     mesh.receiveShadow = false;
+    mesh.userData = { isRemotePlayer: true, playerId: null };
     return mesh;
 }
 
@@ -29,6 +30,7 @@ function getRemotePlayer(playerId) {
     const mesh = createRemotePlayerMesh();
     sceneRef.add(mesh);
 
+    mesh.userData.playerId = playerId;
     const state = {
         mesh,
         targetPosition: new THREE.Vector3(),
@@ -63,6 +65,10 @@ export function updateRemotePlayers(delta) {
         state.mesh.position.lerp(state.targetPosition, alpha);
         state.mesh.rotation.y = lerpAngle(state.mesh.rotation.y, state.targetYaw, alpha);
     });
+}
+
+export function getRemotePlayerMeshes() {
+    return Array.from(remotePlayers.values()).map((state) => state.mesh);
 }
 
 export function removeRemotePlayer(playerId) {

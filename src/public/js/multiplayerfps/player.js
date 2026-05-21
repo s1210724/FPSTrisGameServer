@@ -46,18 +46,49 @@ export function setupPlayerInput(camera, player) {
     });
 }
 
-export function setupPlayerActions(camera, hittableObjects) {
+export function setupPlayerActions(camera, getHittableObjects) {
     const raycaster = new THREE.Raycaster();
-    document.addEventListener("mousedown", () => {
+    document.addEventListener("mousedown", (event) => {
+        if (event.button !== 0) return;
+
         raycaster.setFromCamera({ x: 0, y: 0 }, camera);
-        const hits = raycaster.intersectObjects(hittableObjects, true);
-        if (!hits.length) return;
-        const hitMaterial = hits[0].object.material;
-        if (Array.isArray(hitMaterial)) {
-            hitMaterial.forEach((material) => material.color?.set(0x0000ff));
+        const hits = raycaster.intersectObjects(getHittableObjects(), true);
+        if (!hits.length) {
             return;
         }
-        hitMaterial?.color?.set(0x0000ff);
+
+        const firstHit = hits[0];
+        const hitObject = firstHit.object;
+        const originVector = camera.getWorldPosition(new THREE.Vector3());
+        const directionVector = camera.getWorldDirection(new THREE.Vector3());
+        const origin = {
+            x: originVector.x,
+            y: originVector.y,
+            z: originVector.z
+        };
+        const direction = {
+            x: directionVector.x,
+            y: directionVector.y,
+            z: directionVector.z
+        };
+
+        if (hitObject.userData?.isRemotePlayer) {
+            const socket = window.parent?.sharedSocket;
+            if (socket && typeof socket.emit === "function") {
+                socket.emit("hitscanShot", { origin, direction }, (response) => {
+                    console.log("Shot sent to server, response:", response);
+                });
+            }
+            hitObject.material?.color?.set(0x00ff00);
+            return;
+        }
+
+        const hitMaterial = hitObject.material;
+        if (Array.isArray(hitMaterial)) {
+            hitMaterial.forEach((material) => material.color?.set(0x0000ff));
+        } else {
+            hitMaterial?.color?.set(0x0000ff);
+        }
     });
 }
 

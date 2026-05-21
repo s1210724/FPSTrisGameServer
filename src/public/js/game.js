@@ -2,6 +2,7 @@
 const socket = io({
     withCredentials: true,
 });
+window.sharedSocket = socket;
 
 const session = JSON.parse(localStorage.getItem('sessionData')) || {};
 
@@ -9,6 +10,28 @@ let playerId = "";
 let duelShouldInject = false;
 let playerLostSent = false;
 let duelData = null;
+let duelIframe = null;
+
+function closeDuelIframe(result) {
+    if (duelIframe && duelIframe.parentElement) {
+        duelIframe.parentElement.removeChild(duelIframe);
+    }
+    duelIframe = null;
+    iframeInjected = false;
+    duelShouldInject = false;
+    duelData = null;
+    console.log("Duel iframe closed:", result);
+}
+
+function resetBoardAfterRevive() {
+    for (let row = 0; row < ROWS; row++) {
+        board[row].fill(0);
+    }
+    isGameOver = false;
+    playerLostSent = false;
+    spawnNextPiece();
+    console.log("Board cleared and revived after duel win.");
+}
 
 /* start socket logic */
 
@@ -55,6 +78,14 @@ socket.on("finalGameOver", () => {
 
 socket.on("updateScore", (data) => {
     console.log(data);
+});
+
+socket.on("hitResult", (data) => {
+    console.log("Parent frame received hit result:", data);
+    if (data?.hit && data.shooterId === playerId) {
+        resetBoardAfterRevive();
+    }
+    closeDuelIframe(data);
 });
 
 function broadcastscore() {
@@ -201,18 +232,16 @@ function injectMultiplayerIframe() {
     iframe.allow = 'fullscreen; autoplay; microphone; camera;';
 
     iframe.addEventListener('load', () => {
+        duelIframe = iframe;
         if (!duelData) {
             return;
         }
-        iframe.contentWindow.postMessage(
-            {
-                type: 'duelData',
-                duelId: duelData.duelId,
-                password: duelData.password,
-                obstacles: duelData.obstacles
-            },
-            window.location.origin
-        );
+        iframe.contentWindow.postMessage({
+            type: 'duelData',
+            duelId: duelData.duelId,
+            password: duelData.password,
+            obstacles: duelData.obstacles
+        }, window.location.origin);
     });
 
     document.body.appendChild(iframe);

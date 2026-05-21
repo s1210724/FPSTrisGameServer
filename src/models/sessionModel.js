@@ -1,3 +1,5 @@
+const { createEmptyField } = require("../public/js/shared/tetrisHelpers");
+
 class sessionModel {
     #players = [];
 
@@ -89,6 +91,14 @@ class sessionModel {
             return this.#players[playerId].board;
         }
         return null;
+    }
+
+    clearPlayerField(playerId) {
+        if (playerId in this.#players) {
+            this.#players[playerId].board = createEmptyField();
+            return true;
+        }
+        return false;
     }
 
     getPlayerFields() {

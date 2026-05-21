@@ -98,6 +98,13 @@ function updatePlayerField(session, playerId, field) {
     return session.updatePlayerField(playerId, field);
 }
 
+function clearPlayerField(session, playerId) {
+    if (!session || !playerId) {
+        return false;
+    }
+    return session.clearPlayerField(playerId);
+}
+
 module.exports = {
     migrateLobbyToSession,
     joinSession,
@@ -111,5 +118,6 @@ module.exports = {
     getAllPlayers,
     getPlayerField,
     getPlayerFields,
-    updatePlayerField
+    updatePlayerField,
+    clearPlayerField
 };
