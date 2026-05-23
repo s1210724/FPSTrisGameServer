@@ -4,7 +4,8 @@
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
-    "test": "jest"
+    "test": "jest",
+    "posttest": "node scripts/add-junit-stylesheet.js"
   },
   "jest": {
     "reporters": [
