@@ -74,6 +74,7 @@ async function pageGuestMiddleware(req, res, next) {
 }
 
 module.exports = {
+    getCookieValue,
     pageAuthMiddleware,
     pageAdminMiddleware,
     pageGuestMiddleware,
