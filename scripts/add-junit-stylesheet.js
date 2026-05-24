@@ -2,25 +2,23 @@ const fs = require('fs');
 const path = require('path');
 
 const reportDir = path.join(__dirname, '..', 'reports', 'junit');
-const xmlPath = path.join(reportDir, 'junit.xml');
 const xslPath = path.join(reportDir, 'junit-style.xsl');
 const xslHref = 'junit-style.xsl';
 const stylesheetDirective = `<?xml-stylesheet type="text/xsl" href="${xslHref}"?>`;
 
-function patchXmlFile() {
-  if (!fs.existsSync(xmlPath)) {
-    console.warn(`JUnit XML report not found at ${xmlPath}.`);
-    return;
+function getXmlFiles() {
+  if (!fs.existsSync(reportDir)) {
+    return [];
   }
+  return fs.readdirSync(reportDir)
+    .filter((file) => file.endsWith('.xml'))
+    .map((file) => path.join(reportDir, file));
+}
 
-  if (!fs.existsSync(xslPath)) {
-    console.warn(`Stylesheet not found at ${xslPath}. Please add junit-style.xsl to reports/junit.`);
-    return;
-  }
-
+function patchXmlFile(xmlPath) {
   const xml = fs.readFileSync(xmlPath, 'utf8');
   if (xml.includes(stylesheetDirective)) {
-    return;
+    return false;
   }
 
   const lines = xml.split(/\r?\n/);
@@ -35,7 +33,26 @@ function patchXmlFile() {
   }
 
   fs.writeFileSync(xmlPath, updated, 'utf8');
-  console.log(`Injected stylesheet reference into ${xmlPath}`);
+  return true;
 }
 
-patchXmlFile();
+function main() {
+  if (!fs.existsSync(xslPath)) {
+    console.warn(`Stylesheet not found at ${xslPath}. Please add junit-style.xsl to reports/junit.`);
+    return;
+  }
+
+  const xmlFiles = getXmlFiles();
+  if (!xmlFiles.length) {
+    console.warn(`No XML files found in ${reportDir}.`);
+    return;
+  }
+
+  xmlFiles.forEach((xmlPath) => {
+    if (patchXmlFile(xmlPath)) {
+      console.log(`Injected stylesheet reference into ${xmlPath}`);
+    }
+  });
+}
+
+main();

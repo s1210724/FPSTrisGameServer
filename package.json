@@ -5,7 +5,9 @@
   "scripts": {
     "start": "node src/server.js",
     "test": "jest",
-    "posttest": "node scripts/add-junit-stylesheet.js"
+    "posttest": "node scripts/add-junit-stylesheet.js",
+    "test:ui": "npx playwright test",
+    "posttest:ui": "node scripts/add-junit-stylesheet.js"
   },
   "jest": {
     "reporters": [
@@ -27,6 +29,7 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@playwright/test": "^1.60.0",
     "jest": "^30.3.0",
     "jest-junit": "^16.0.0"
   }
