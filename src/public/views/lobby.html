@@ -5,14 +5,14 @@
     <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>
 <body>
-    <h1 id="lobbyMessage">Welkom in de FPSTris Lobby</h1>
+    <h1 id="lobbyMessage" class="lobby-message">Welkom in de FPSTris Lobby</h1>
     
-    <ul id="playerList">
+    <ul id="playerList" class="player-list">
         <!-- Players will be added here dynamically using JavaScript -->
     </ul>
     
-    <div>
-        <a id="leaveButton" href="/">Leave lobby</a>
+    <div class="lobby-footer">
+        <a id="leaveButton" class="leave-button" href="/">Leave lobby</a>
     </div>
 
     <script src="/socket.io/socket.io.js"></script>
