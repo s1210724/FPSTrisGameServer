@@ -50,6 +50,7 @@ body {
         flex-direction: column;
         width: 100%;
         min-height: 50%;
+        max-height: 60vh;
         flex: 5;
         overflow-y: auto;
         overflow-x: visible;
