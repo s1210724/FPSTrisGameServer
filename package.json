@@ -19,7 +19,8 @@
           "outputName": "junit.xml"
         }
       ]
-    ]
+    ],
+    "testPathIgnorePatterns": ["<rootDir>/tests/ui/"]
   },
   "dependencies": {
     "dotenv": "^17.4.2",
