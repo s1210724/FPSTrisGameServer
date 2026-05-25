@@ -1,53 +1,74 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
     <title>FPSTris Login</title>
 </head>
-<body>
-    <main>
-        <h1>Login</h1>
+<body class="auth-body">
 
-        <p id="loginStatus">Enter your username and password.</p>
+    <%- include("partials/header.html", { username }) %>
 
-        <form id="loginForm">
-            <div>
+    <main class="auth-container">
+
+        <div class="auth-tag">LOGIN_TERMINAL</div>
+
+        <h1 class="auth-title">
+            LOGIN
+            <span>ACCESS</span>
+        </h1>
+
+        <p id="loginStatus" class="auth-description">
+            Synchronize your credentials to access the system core.
+        </p>
+
+        <form id="loginForm" class="auth-form">
+
+            <div class="auth-field">
                 <label for="username">Username</label>
                 <input
                     id="username"
                     name="username"
                     type="text"
                     autocomplete="username"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    maxlength="64"
                     required
                 >
             </div>
 
-            <div>
+            <div class="auth-field">
                 <label for="password">Password</label>
                 <input
                     id="password"
                     name="password"
                     type="password"
                     autocomplete="current-password"
-                    maxlength="256"
                     required
                 >
             </div>
 
-            <button id="loginButton" type="submit">Login</button>
+            <button id="loginButton" class="auth-button" type="submit">
+                Login
+            </button>
+
         </form>
 
-        <p>
-            Don't have an account? <a href="/register">Register here</a>
-        </p>
+        <div class="auth-links">
+            <a href="/register">Create account</a>
+            <a href="/">Back</a>
+        </div>
 
-        <p>
-            <a href="/">Back to home</a>
-        </p>
     </main>
 
+    <div class="auth-footer-left">
+        BUFFER: STABLE
+    </div>
+
+    <div class="auth-footer-right">
+        SYS_REV_1984
+    </div>
+
     <script src="/js/login.js"></script>
+
 </body>
 </html>

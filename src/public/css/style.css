@@ -261,3 +261,219 @@ body.api-page-body {
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 8px;
 }
+
+body.auth-body {
+    overflow: hidden;
+    background:
+        radial-gradient(circle at top left, rgba(251,191,36,0.08), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(59,130,246,0.08), transparent 35%),
+        linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 40%, #111111 100%);
+    font-family: Arial, Helvetica, sans-serif;
+    color: white;
+}
+
+/* subtle overlay lines */
+body.auth-body::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        repeating-linear-gradient(
+            to bottom,
+            rgba(255,255,255,0.015),
+            rgba(255,255,255,0.015) 1px,
+            transparent 1px,
+            transparent 4px
+        );
+    pointer-events: none;
+    opacity: 0.25;
+}
+
+/* top terminal bar */
+.auth-header {
+    position: static;
+    width: 100%;
+    padding: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(251,191,36,0.25);
+}
+
+.auth-logo {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: 2px;
+}
+
+.auth-terminal {
+    font-size: 0.8rem;
+    color: var(--primary-color);
+    opacity: 0.7;
+    letter-spacing: 3px;
+}
+
+/* center container */
+.auth-container {
+    z-index: 2;
+    width: 35%;
+    margin: 2rem;
+    padding: 3rem;
+    background: rgba(15,15,15,0.88);
+    border: 1px solid rgba(251,191,36,0.3);
+    box-shadow:
+        0 0 40px rgba(251,191,36,0.08),
+        inset 0 0 30px rgba(251,191,36,0.03);
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+/* little active tag */
+.auth-tag {
+    align-self: center;
+    border: 1px solid rgba(251,191,36,0.4);
+    color: var(--primary-color);
+    padding: 0.4rem 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+}
+
+/* title */
+.auth-title {
+    text-align: center;
+    font-size: clamp(3rem, 7vw, 5rem);
+    line-height: 0.9;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+.auth-title span {
+    display: block;
+    color: var(--primary-color);
+    text-shadow: 4px 4px 0 rgba(0,0,0,0.6);
+}
+
+/* description */
+.auth-description {
+    width: 80%;
+    align-self: center;
+    text-align: center;
+    color: rgba(255,255,255,0.7);
+    line-height: 1.6;
+    font-size: 0.95rem;
+    letter-spacing: 1px;
+}
+
+/* form */
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.2rem;
+}
+
+.auth-field {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.auth-field label {
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+.auth-field input {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(251,191,36,0.25);
+    padding: 1rem;
+    color: white;
+    outline: none;
+    transition: 0.2s ease;
+    font-size: 1rem;
+}
+
+.auth-field input:focus {
+    border-color: var(--primary-color);
+    box-shadow:
+        0 0 12px rgba(251,191,36,0.25),
+        inset 0 0 10px rgba(251,191,36,0.05);
+}
+
+/* main button */
+.auth-button {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: none;
+    cursor: pointer;
+    background: var(--primary-color);
+    color: black;
+    font-weight: 900;
+    font-size: 1rem;
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    box-shadow: 8px 8px 0 rgba(0,0,0,0.6);
+    transition: 0.15s ease;
+}
+
+.auth-button:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 12px 12px 0 rgba(0,0,0,0.7);
+}
+
+/* links */
+.auth-links {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+}
+
+.auth-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    opacity: 0.85;
+    transition: 0.2s ease;
+}
+
+.auth-links a:hover {
+    opacity: 1;
+    text-shadow: 0 0 10px rgba(251,191,36,0.4);
+}
+
+/* status text */
+.auth-status {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+/* bottom corners */
+.auth-footer-left,
+.auth-footer-right {
+    position: absolute;
+    bottom: 0rem;
+    font-size: 0.75rem;
+    color: rgba(251,191,36,0.45);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+}
+
+.auth-footer-left {
+    left: 2rem;
+}
+
+.auth-footer-right {
+    right: 2rem;
+}
+
+body.auth-body {
+    font-family: 'Orbitron', sans-serif;
+}
