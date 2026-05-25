@@ -10,65 +10,110 @@
 
     <%- include("partials/header.html", { username }) %>
 
-    <main class="auth-container">
-
-        <div class="auth-tag">terminal_active</div>
-
-        <h1 class="auth-title">
-            CREATE
-            <span>ACCOUNT</span>
-        </h1>
-
-        <p id="loginStatus" class="auth-description">
-            Synchronize your credentials to access the system core.
-        </p>
-
-        <form id="loginForm" class="auth-form">
-
-            <div class="auth-field">
-                <label for="username">Username</label>
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autocomplete="username"
-                    required
-                >
+    <main class="main-auth-container">
+        <div class="auth-container">
+            <div class="auth-tag">
+            REGISTRATION_TERMINAL
             </div>
 
-            <div class="auth-field">
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    required
+            <h1 class="auth-title">
+                CREATE
+                <span>ACCOUNT</span>
+            </h1>
+
+            <div id="registerStatus" class="auth-status"></div>
+
+            <!-- FORM -->
+            <form id="registerForm" class="auth-form">
+
+                <!-- USERNAME -->
+                <div class="auth-field">
+
+                    <label for="username">
+                        Username
+                    </label>
+
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        autocapitalize="none"
+                        spellcheck="false"
+                        maxlength="64"
+                        required
+                    >
+
+                </div>
+
+                <!-- EMAIL -->
+                <div class="auth-field">
+
+                    <label for="email">
+                        Email
+                    </label>
+
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        maxlength="256"
+                        required
+                    >
+
+                </div>
+
+                <!-- PASSWORD -->
+                <div class="auth-field">
+
+                    <label for="password">
+                        Password
+                    </label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="new-password"
+                        maxlength="256"
+                        required
+                    >
+
+                </div>
+
+                <!-- SUBMIT -->
+                <button
+                    id="registerButton"
+                    class="auth-button"
+                    type="submit"
                 >
+                    Register
+                </button>
+
+            </form>
+
+            <!-- LINKS -->
+            <div class="auth-links">
+
+                <a href="/login">
+                    Already have an account?
+                </a>
+
+                <a href="/">
+                    Back
+                </a>
+
             </div>
-
-            <button id="loginButton" class="auth-button" type="submit">
-                Register
-            </button>
-
-        </form>
-
-        <div class="auth-links">
-            <a href="/login">Already have an account?</a>
-            <a href="/">Back</a>
         </div>
+
+        
 
     </main>
 
-    <div class="auth-footer-left">
-        BUFFER: STABLE
-    </div>
+    <%- include("partials/footer.html") %>
 
-    <div class="auth-footer-right">
-        SYS_REV_1984
-    </div>
-
-    <script src="/js/login.js"></script>
+    <script src="/js/register.js"></script>
 
 </body>
 </html>

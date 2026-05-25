@@ -41,8 +41,9 @@ exports.getGamePage = (req, res) => {
     res.sendFile(pageService.getViewPath("game.html"));
 };
 
-exports.getLobbyPage = (req, res) => {
-    res.sendFile(pageService.getViewPath("lobby.html"));
+exports.getLobbyPage = async (req, res) => {
+    const username = await getUsernameFromToken(req);
+    res.render("lobby", { username });
 };
 
 exports.getApiCallPage = (req, res) => {

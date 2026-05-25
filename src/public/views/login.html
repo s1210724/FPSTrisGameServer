@@ -10,63 +10,60 @@
 
     <%- include("partials/header.html", { username }) %>
 
-    <main class="auth-container">
+    <main class="main-auth-container">
+        <div class="auth-container">
+            <div class="auth-tag">LOGIN_TERMINAL</div>
 
-        <div class="auth-tag">LOGIN_TERMINAL</div>
+            <h1 class="auth-title">
+                LOGIN
+                <span>ACCESS</span>
+            </h1>
 
-        <h1 class="auth-title">
-            LOGIN
-            <span>ACCESS</span>
-        </h1>
+            <p id="loginStatus" class="auth-description">
+                Enter your credentials to access the system core.
+            </p>
 
-        <p id="loginStatus" class="auth-description">
-            Synchronize your credentials to access the system core.
-        </p>
+            <form id="loginForm" class="auth-form">
 
-        <form id="loginForm" class="auth-form">
+                <div class="auth-field">
+                    <label for="username">Username</label>
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
 
-            <div class="auth-field">
-                <label for="username">Username</label>
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autocomplete="username"
-                    required
-                >
+                <div class="auth-field">
+                    <label for="password">Password</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button id="loginButton" class="auth-button" type="submit">
+                    Login
+                </button>
+
+            </form>
+
+            <div class="auth-links">
+                <a href="/register">Create account</a>
+                <a href="/">Back</a>
             </div>
-
-            <div class="auth-field">
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    required
-                >
-            </div>
-
-            <button id="loginButton" class="auth-button" type="submit">
-                Login
-            </button>
-
-        </form>
-
-        <div class="auth-links">
-            <a href="/register">Create account</a>
-            <a href="/">Back</a>
         </div>
+
+        
 
     </main>
 
-    <div class="auth-footer-left">
-        BUFFER: STABLE
-    </div>
-
-    <div class="auth-footer-right">
-        SYS_REV_1984
-    </div>
+    <%- include("partials/footer.html") %>
 
     <script src="/js/login.js"></script>
 

@@ -4,7 +4,9 @@
     <title>FPSTris Lobby</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>
-<body>
+<body class="auth-body">
+    <%- include("partials/header.html", { username }) %>
+
     <h1 id="lobbyMessage" class="lobby-message">Welkom in de FPSTris Lobby</h1>
     
     <ul id="playerList" class="player-list">
@@ -14,6 +16,8 @@
     <div class="lobby-footer">
         <a id="leaveButton" class="leave-button" href="/">Leave lobby</a>
     </div>
+
+    <%- include("partials/footer.html") %>
 
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/Lobby.js"></script>

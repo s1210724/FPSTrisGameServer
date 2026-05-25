@@ -2,27 +2,35 @@
 <html>
 <head>
     <title>FPSTris Home</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" type="text/css" href="/css/style.css">
 </head>
-<body>
+<body class="auth-body">
     <%- include("partials/header.html", { username }) %>
 
-    <h1>Welkom bij FPSTris</h1>
-    
-    <a href="/game">
-        <button>Start Game</button>
-    </a>
-    <a href="/lobby">
-        join lobby
-    </a>
-    <a href="/login">
-        login
-    </a>
-    <a href="/logged-in">
-        dashboard
-    </a>
-    <a href="/apicall">
-        api form
-    </a>
+    <main class="home-main-content">
+        <div class="home-container">
+            <div class="home-status-badge">TERMINAL_ACTIVE</div>
+
+            <h1 class="home-title">
+                KINETIC
+                <span>TERMINAL</span>
+            </h1>
+
+            <div class="home-actions">
+                <a class="home-cta" href="/lobby">PLAY_GAME</a>
+
+                <div class="home-mini-actions">
+                    <a href="/logged-in" class="home-mini">SETTINGS</a>
+                    <a href="/login" class="home-mini">LOGIN</a>
+                </div>
+            </div>
+        </div>
+        
+    </main>
+
+    <%- include("partials/footer.html") %>
 </body>
 </html>
