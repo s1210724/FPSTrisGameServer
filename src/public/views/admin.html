@@ -1,34 +1,34 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FPSTris Admin Panel</title>
+    <title>FPSTris Beheerpaneel</title>
 </head>
 <body>
     <main>
-        <h1>Admin Panel</h1>
+        <h1>Beheerpaneel</h1>
 
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/logged-in">Dashboard</a></li>
-                <li><a href="/" onclick="logout()">Logout</a></li>
+                <li><a href="/">Start</a></li>
+                <li><a href="/logged-in">Overzicht</a></li>
+                <li><a href="/" onclick="logout()">Uitloggen</a></li>
             </ul>
         </nav>
 
         <section id="adminContent">
-            <h2>Administration</h2>
-            <p>Welcome, Administrator. You have access to sensitive operations.</p>
+            <h2>Beheer</h2>
+            <p>Welkom, beheerder. U heeft toegang tot gevoelige handelingen.</p>
 
-            <h3>System Status</h3>
+            <h3>Systeemstatus</h3>
             <div id="systemStatus">
-                <p>Loading system info...</p>
+                <p>Systeemgegevens worden geladen...</p>
             </div>
 
-            <h3>User Management</h3>
-            <p>User management features would go here.</p>
+            <h3>Gebruikersbeheer</h3>
+            <p>Functies voor gebruikersbeheer komen hier.</p>
 
-            <h3>Settings</h3>
-            <p>Advanced settings for the application would go here.</p>
+            <h3>Instellingen</h3>
+            <p>Geavanceerde applicatie-instellingen komen hier.</p>
         </section>
     </main>
 
@@ -57,20 +57,20 @@
 
                 const user = await response.json();
 
-                // Verify admin claim
+                // Controleer admin-recht
                 if (!Array.isArray(user.claims) || !user.claims.includes('admin')) {
                     window.location.href = '/logged-in';
                     return;
                 }
 
-                // Load some basic system info
+                // Laad basis systeeminformatie
                 document.getElementById('systemStatus').innerHTML = `
-                    <p><strong>Current User:</strong> ${user.username}</p>
-                    <p><strong>User ID:</strong> ${user.userId}</p>
-                    <p><strong>Claims:</strong> ${user.claims.join(', ')}</p>
+                    <p><strong>Huidige gebruiker:</strong> ${user.username}</p>
+                    <p><strong>Gebruikers-ID:</strong> ${user.userId}</p>
+                    <p><strong>Toegangsrechten:</strong> ${user.claims.join(', ')}</p>
                 `;
             } catch (error) {
-                console.error('Failed to load admin info:', error);
+                console.error('Kon admin-info niet laden:', error);
                 window.location.href = '/login';
             }
         }

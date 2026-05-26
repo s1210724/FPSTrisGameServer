@@ -3,6 +3,8 @@
 <head>
     <title>FPSTris Lobby</title>
     <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body class="auth-body">
     <%- include("partials/header.html", { username }) %>
@@ -10,11 +12,11 @@
     <h1 id="lobbyMessage" class="lobby-message">Welkom in de FPSTris Lobby</h1>
     
     <ul id="playerList" class="player-list">
-        <!-- Players will be added here dynamically using JavaScript -->
+        <!-- Spelers worden hier dynamisch toegevoegd met JavaScript -->
     </ul>
     
     <div class="lobby-footer">
-        <a id="leaveButton" class="leave-button" href="/">Leave lobby</a>
+        <a id="leaveButton" class="leave-button" href="/">Lobby verlaten</a>
     </div>
 
     <%- include("partials/footer.html") %>
