@@ -5,6 +5,13 @@ const { getLobbyBySocketId } = require("./generalEventHandling");
 function registerEvents(socket, io) {
     socket.on("joinLobby", (data, ack) => {
         const lobby = lobbyService.joinLobby(global.lobbys, socket);
+        
+        if (!lobby) {
+            if (typeof ack === "function") {
+                ack({ error: "Already in a lobby" });
+            }
+            return;
+        }
         const playerId = socket.user?.username || socket.id;
 
         io.to(lobby.id).emit("newConnection", playerId);

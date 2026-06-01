@@ -35,13 +35,13 @@
 	];
 
 	const COLORS = [
-		"#00B8D4",
-		"#FDD835",
-		"#AB47BC",
-		"#66BB6A",
-		"#EF5350",
-		"#42A5F5",
-		"#FFA726"
+		"#3366CC",
+		"#DC3912",
+		"#FF9900",
+		"#109618",
+		"#990099",
+		"#0099C6",
+		"#DD4477"
 	];
 
 	/** Rotate a shape matrix clockwise. */

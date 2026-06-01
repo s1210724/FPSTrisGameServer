@@ -11,8 +11,13 @@ function joinLobby(lobbys, socket) {
         lobbys[lobbyId] = lobby;
     }
 
-    lobby.joinPlayer(socket);
-    return lobby;
+    const playerAlreadyInLobby = lobby.hasPlayer(socket.user?.username || socket.id);
+    if (!playerAlreadyInLobby) {
+        lobby.joinPlayer(socket);
+        return lobby;
+    }
+
+    return;
 }
 
 function getAllPlayers(lobby) {

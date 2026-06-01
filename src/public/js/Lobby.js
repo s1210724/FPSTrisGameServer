@@ -7,6 +7,10 @@ const playerListElement = document.getElementById("playerList");
 const playerList = [];
 
 socket.emit("joinLobby", {}, (response) => {
+    if (response.error) {
+        console.error(response.error);
+        window.location.href = "/"; // Redirect to home if already in a lobby on other tab
+    }
     response.forEach((player) => {
         playerList.push(player);
     });
