@@ -351,6 +351,24 @@ function drawBoard() {
             }
         });
     });
+
+    // Draw the board grid lines.
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= COLS; c++) {
+        const x = BOARD_X_OFFSET + c * BLOCK_SIZE + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x, BOARD_Y_OFFSET);
+        ctx.lineTo(x, BOARD_Y_OFFSET + DISPLAY_ROWS * BLOCK_SIZE);
+        ctx.stroke();
+    }
+    for (let r = 0; r <= DISPLAY_ROWS; r++) {
+        const y = BOARD_Y_OFFSET + r * BLOCK_SIZE + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(BOARD_X_OFFSET, y);
+        ctx.lineTo(BOARD_X_OFFSET + BOARD_WIDTH, y);
+        ctx.stroke();
+    }
 }
 
 function drawPiece(piece) {
