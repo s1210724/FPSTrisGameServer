@@ -11,15 +11,11 @@ class sessionModel {
     }
 
     addPlayer(socket) {
-        // standard row and cols for tetris
-        const ROWS = 20;
-        const COLS = 10;
-
         // add player to session with initial score of 0, empty board, and alive state
         this.#players[socket.id] = {
             id: socket.id,
             score: 0,
-            board: Array.from({ length: ROWS }, () => Array(COLS).fill(0)),
+            board: createEmptyField(),
             state: "alive"
         };
 

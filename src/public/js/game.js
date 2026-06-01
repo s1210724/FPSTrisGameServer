@@ -117,9 +117,13 @@ const canvas = document.getElementById("gameCanvas");
 const ctx = canvas.getContext("2d");
 
 const { BOARD_COLS: COLS, BOARD_ROWS: ROWS, COLORS, PIECE_ROTATIONS, getFilledCells } = TetrisHelpers;
-
-// Grid settings for a classic 10x20 Tetris board.
-const BLOCK_SIZE = canvas.width / COLS;
+const EXTRA_ROWS = 2;
+const DISPLAY_ROWS = ROWS + EXTRA_ROWS;
+const BLOCK_SIZE = Math.min(canvas.width / COLS, canvas.height / DISPLAY_ROWS);
+const BOARD_X_OFFSET = Math.floor((canvas.width - BLOCK_SIZE * COLS) / 2);
+const BOARD_Y_OFFSET = 0;
+const BOARD_WIDTH = BLOCK_SIZE * COLS;
+const LOSS_LINE_Y = BOARD_Y_OFFSET + EXTRA_ROWS * BLOCK_SIZE;
 
 // Board stores locked blocks only; the active piece is drawn separately.
 const board = Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -142,7 +146,7 @@ function createPieceFromType(type) {
         shape,
         color: COLORS[type],
         x: Math.floor(COLS / 2) - Math.ceil(shape[0].length / 2),
-        y: -1
+        y: -EXTRA_ROWS
     };
 }
 
@@ -182,13 +186,22 @@ function collides(piece, nextX, nextY, nextShape = piece.shape) {
 // Merge writes the active piece into the locked board grid.
 function lockPiece(piece) {
     const filledCells = getFilledCells(piece.shape);
+    let topOut = false;
+
     filledCells.forEach(({ row, col }) => {
         const boardY = piece.y + row;
         const boardX = piece.x + col;
-        if (boardY >= 0) {
-            board[boardY][boardX] = piece.color;
+        if (boardY < 0) {
+            topOut = true;
+            return;
         }
+
+        board[boardY][boardX] = piece.color;
     });
+
+    if (topOut) {
+        isGameOver = true;
+    }
 }
 
 // Clear full lines and shift the above rows downward.
@@ -301,7 +314,9 @@ function stepDown() {
     emitBlockLock(activePiece);
     lockPiece(activePiece);
     clearLines();
-    spawnNextPiece();
+    if (!isGameOver) {
+        spawnNextPiece();
+    }
 }
 
 function hardDrop() {
@@ -314,24 +329,46 @@ function hardDrop() {
 }
 
 function drawCell(x, y, color) {
+    const displayX = BOARD_X_OFFSET + x * BLOCK_SIZE;
+    const displayY = BOARD_Y_OFFSET + y * BLOCK_SIZE;
     ctx.fillStyle = color;
-    ctx.fillRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
-    ctx.strokeStyle = "#1C1C1C";
-    ctx.strokeRect(x * BLOCK_SIZE, y * BLOCK_SIZE, BLOCK_SIZE, BLOCK_SIZE);
+    ctx.fillRect(displayX, displayY, BLOCK_SIZE, BLOCK_SIZE);
 }
 
 function drawBoard() {
     ctx.fillStyle = "#0F172A";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    // Draw the two hidden preview rows above the main playfield.
+    ctx.fillStyle = "#131c2f";
+    ctx.fillRect(BOARD_X_OFFSET, BOARD_Y_OFFSET, BOARD_WIDTH, EXTRA_ROWS * BLOCK_SIZE);
+
     // Draw every cell that is not empty in the board grid.
     board.forEach((row, r) => {
         row.forEach((cell, c) => {
             if (cell !== 0) {
-                drawCell(c, r, cell);
+                drawCell(c, r + EXTRA_ROWS, cell);
             }
         });
     });
+
+    // Draw the board grid lines.
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+    ctx.lineWidth = 1;
+    for (let c = 0; c <= COLS; c++) {
+        const x = BOARD_X_OFFSET + c * BLOCK_SIZE + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(x, BOARD_Y_OFFSET);
+        ctx.lineTo(x, BOARD_Y_OFFSET + DISPLAY_ROWS * BLOCK_SIZE);
+        ctx.stroke();
+    }
+    for (let r = 0; r <= DISPLAY_ROWS; r++) {
+        const y = BOARD_Y_OFFSET + r * BLOCK_SIZE + 0.5;
+        ctx.beginPath();
+        ctx.moveTo(BOARD_X_OFFSET, y);
+        ctx.lineTo(BOARD_X_OFFSET + BOARD_WIDTH, y);
+        ctx.stroke();
+    }
 }
 
 function drawPiece(piece) {
@@ -339,10 +376,19 @@ function drawPiece(piece) {
     filledCells.forEach(({ row, col }) => {
         const drawX = piece.x + col;
         const drawY = piece.y + row;
-        if (drawY >= 0) {
-            drawCell(drawX, drawY, piece.color);
+        if (drawY >= -EXTRA_ROWS && drawY < ROWS) {
+            drawCell(drawX, drawY + EXTRA_ROWS, piece.color);
         }
     });
+}
+
+function drawLossLine() {
+    ctx.strokeStyle = "#FF1744";
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(BOARD_X_OFFSET, LOSS_LINE_Y);
+    ctx.lineTo(BOARD_X_OFFSET + BOARD_WIDTH, LOSS_LINE_Y);
+    ctx.stroke();
 }
 
 function drawHud() {
@@ -402,6 +448,7 @@ function gameLoop(timestamp) {
     if (activePiece && !isGameOver) {
         drawPiece(activePiece);
     }
+    drawLossLine();
     drawHud();
 
     if (isGameOver && !playerLostSent) {

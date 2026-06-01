@@ -247,8 +247,8 @@ body.api-page-body {
     position: relative;
     z-index: 2;
     width: min(36vw, 320px);
-    height: min(92vh, 640px);
-    aspect-ratio: 1 / 2;
+    height: fit-content;
+    aspect-ratio: 5 / 11;
     display: grid;
     place-items: center;
     border-radius: 12px;
@@ -259,7 +259,7 @@ body.api-page-body {
 
 .game-canvas {
     width: 100%;
-    aspect-ratio: 1/2;
+    aspect-ratio: 5/11;
     border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: 8px;
 }
