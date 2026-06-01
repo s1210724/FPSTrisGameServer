@@ -1,53 +1,71 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FPSTris Login</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <title>FPSTris Inloggen</title>
 </head>
-<body>
-    <main>
-        <h1>Login</h1>
+<body class="auth-body">
 
-        <p id="loginStatus">Enter your username and password.</p>
+    <%- include("partials/header.html", { username }) %>
 
-        <form id="loginForm">
-            <div>
-                <label for="username">Username</label>
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autocomplete="username"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    maxlength="64"
-                    required
-                >
+    <main class="main-auth-container">
+        <div class="auth-container">
+            <div class="auth-tag">INLOG_TERMINAL</div>
+
+            <h1 class="auth-title">
+                INLOGGEN
+                <span>TOEGANG</span>
+            </h1>
+
+            <p id="loginStatus" class="auth-description">
+                Voer uw gegevens in om toegang te krijgen tot het systeem.
+            </p>
+
+            <form id="loginForm" class="auth-form">
+
+                <div class="auth-field">
+                    <label for="username">Gebruikersnaam</label>
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        required
+                    >
+                </div>
+
+                <div class="auth-field">
+                    <label for="password">Wachtwoord</label>
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="current-password"
+                        required
+                    >
+                </div>
+
+                <button id="loginButton" class="auth-button" type="submit">
+                    Inloggen
+                </button>
+
+            </form>
+
+            <div class="auth-links">
+                <a href="/register">Account aanmaken</a>
+                <a href="/">Terug</a>
             </div>
+        </div>
 
-            <div>
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="current-password"
-                    maxlength="256"
-                    required
-                >
-            </div>
+        
 
-            <button id="loginButton" type="submit">Login</button>
-        </form>
-
-        <p>
-            Don't have an account? <a href="/register">Register here</a>
-        </p>
-
-        <p>
-            <a href="/">Back to home</a>
-        </p>
     </main>
 
+    <%- include("partials/footer.html") %>
+
     <script src="/js/login.js"></script>
+
 </body>
 </html>

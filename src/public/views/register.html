@@ -1,65 +1,119 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FPSTris Register</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/css/style.css">
+    <title>FPSTris Registreren</title>
 </head>
-<body>
-    <main>
-        <h1>Register</h1>
+<body class="auth-body">
 
-        <p id="registerStatus">Create a new account to get started.</p>
+    <%- include("partials/header.html", { username }) %>
 
-        <form id="registerForm">
-            <div>
-                <label for="username">Username</label>
-                <input
-                    id="username"
-                    name="username"
-                    type="text"
-                    autocomplete="username"
-                    autocapitalize="none"
-                    spellcheck="false"
-                    maxlength="64"
-                    required
-                >
+    <main class="main-auth-container">
+        <div class="auth-container">
+            <div class="auth-tag">
+            REGISTRATIE_TERMINAL
             </div>
 
-            <div>
-                <label for="email">Email</label>
-                <input
-                    id="email"
-                    name="email"
-                    type="email"
-                    autocomplete="email"
-                    maxlength="256"
-                    required
+            <h1 class="auth-title">
+                AANMAKEN
+                <span>ACCOUNT</span>
+            </h1>
+
+            <div id="registerStatus" class="auth-status"></div>
+
+            <!-- FORMULIER -->
+            <form id="registerForm" class="auth-form">
+
+                <!-- GEBRUIKERSNAAM -->
+                <div class="auth-field">
+
+                    <label for="username">
+                        Gebruikersnaam
+                    </label>
+
+                    <input
+                        id="username"
+                        name="username"
+                        type="text"
+                        autocomplete="username"
+                        autocapitalize="none"
+                        spellcheck="false"
+                        maxlength="64"
+                        required
+                    >
+
+                </div>
+
+                <!-- E-MAIL -->
+                <div class="auth-field">
+
+                    <label for="email">
+                        E-mail
+                    </label>
+
+                    <input
+                        id="email"
+                        name="email"
+                        type="email"
+                        autocomplete="email"
+                        maxlength="256"
+                        required
+                    >
+
+                </div>
+
+                <!-- WACHTWOORD -->
+                <div class="auth-field">
+
+                    <label for="password">
+                        Wachtwoord
+                    </label>
+
+                    <input
+                        id="password"
+                        name="password"
+                        type="password"
+                        autocomplete="new-password"
+                        maxlength="256"
+                        required
+                    >
+
+                </div>
+
+                <!-- VERZENDEN -->
+                <button
+                    id="registerButton"
+                    class="auth-button"
+                    type="submit"
                 >
+                    Registreren
+                </button>
+
+            </form>
+
+            <!-- LINKS -->
+            <div class="auth-links">
+
+                <a href="/login">
+                    Heeft u al een account?
+                </a>
+
+                <a href="/">
+                    Terug
+                </a>
+
             </div>
+        </div>
 
-            <div>
-                <label for="password">Password</label>
-                <input
-                    id="password"
-                    name="password"
-                    type="password"
-                    autocomplete="new-password"
-                    maxlength="256"
-                    required
-                >
-            </div>
+        
 
-            <button id="registerButton" type="submit">Register</button>
-        </form>
-
-        <p>
-            Already have an account? <a href="/login">Login here</a>
-        </p>
-
-        <p>
-            <a href="/">Back to home</a>
-        </p>
     </main>
 
+    <%- include("partials/footer.html") %>
+
     <script src="/js/register.js"></script>
+
 </body>
 </html>

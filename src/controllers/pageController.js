@@ -1,15 +1,32 @@
 const pageService = require("../services/pageService");
+const { getCookieValue } = require("../middleware/pageAuthMiddleware");
+const { verifyToken } = require("../auth/jwtValidator");
 
-exports.getHomePage = (req, res) => {
-    res.sendFile(pageService.getViewPath("index.html"));
+async function getUsernameFromToken(req) {
+    const token = getCookieValue(req.headers.cookie, "token");
+    if (!token) {
+        return null;
+    }
+
+    try {
+        const payload = await verifyToken(token);
+        return payload?.username || null;
+    } catch (_) {
+        return null;
+    }
+}
+
+exports.getHomePage = async (req, res) => {
+    const username = await getUsernameFromToken(req);
+    res.render("index", { username });
 };
 
 exports.getLoginPage = (req, res) => {
-    res.sendFile(pageService.getViewPath("login.html"));
+    res.render("login", { username: null });
 };
 
 exports.getRegisterPage = (req, res) => {
-    res.sendFile(pageService.getViewPath("register.html"));
+    res.render("register", { username: null });
 };
 
 exports.getLoggedInPage = (req, res) => {
@@ -24,8 +41,9 @@ exports.getGamePage = (req, res) => {
     res.sendFile(pageService.getViewPath("game.html"));
 };
 
-exports.getLobbyPage = (req, res) => {
-    res.sendFile(pageService.getViewPath("lobby.html"));
+exports.getLobbyPage = async (req, res) => {
+    const username = await getUsernameFromToken(req);
+    res.render("lobby", { username });
 };
 
 exports.getApiCallPage = (req, res) => {

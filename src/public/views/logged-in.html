@@ -1,38 +1,38 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>FPSTris Dashboard</title>
+    <title>FPSTris Overzicht</title>
 </head>
 <body>
     <main>
-        <h1 id="welcomeHeader">Welcome to FPSTris</h1>
+        <h1 id="welcomeHeader">Welkom bij FPSTris</h1>
 
         <div id="userInfo">
-            <p>User ID: <span id="userId">-</span></p>
-            <p>Username: <span id="username">-</span></p>
-            <p>Claims: <span id="claims">-</span></p>
+            <p>Gebruikers-ID: <span id="userId">-</span></p>
+            <p>Gebruikersnaam: <span id="username">-</span></p>
+            <p>Toegangsrechten: <span id="claims">-</span></p>
         </div>
 
         <nav>
             <ul>
-                <li><a href="/">Home</a></li>
-                <li><a href="/lobby">Join Lobby</a></li>
+                <li><a href="/">Start</a></li>
+                <li><a href="/lobby">Deelnemen aan Lobby</a></li>
                 <li id="adminLink" style="display: none;">
-                    <a href="/admin">Admin Panel</a>
+                    <a href="/admin">Beheerpaneel</a>
                 </li>
-                <li><a href="/" onclick="logout()">Logout</a></li>
+                <li><a href="/" onclick="logout()">Uitloggen</a></li>
             </ul>
         </nav>
 
         <section id="content">
-            <h2>Dashboard</h2>
-            <p>You are logged in. Use the navigation above to access features.</p>
+            <h2>Overzicht</h2>
+            <p>U bent ingelogd. Gebruik de navigatie hierboven om functies te openen.</p>
         </section>
     </main>
 
     <script>
         function logout() {
-            // Clear cookie by fetching logout endpoint
+            // Wis cookie door het logout-endpoint aan te roepen
             fetch('/api/auth/logout', { method: 'POST', credentials: 'include' })
                 .then(() => {
                     window.location.href = '/';
@@ -42,7 +42,7 @@
                 });
         }
 
-        // Fetch the current user info to populate the page and show admin link if applicable
+        // Haal de gebruikerinfo op om de pagina te vullen en de admin-link te tonen
         async function loadUserInfo() {
             try {
                 const response = await fetch('/api/auth/user', {
@@ -58,15 +58,15 @@
                 const user = await response.json();
                 document.getElementById('userId').textContent = user.userId || '-';
                 document.getElementById('username').textContent = user.username || '-';
-                document.getElementById('claims').textContent = (user.claims || []).join(', ') || 'none';
-                document.getElementById('welcomeHeader').textContent = `Welcome, ${user.username}!`;
+                document.getElementById('claims').textContent = (user.claims || []).join(', ') || 'geen';
+                document.getElementById('welcomeHeader').textContent = `Welkom, ${user.username}!`;
 
-                // Show admin link if user has admin claim
+                // Toon admin-link als gebruiker admin-rechten heeft
                 if (Array.isArray(user.claims) && user.claims.includes('admin')) {
                     document.getElementById('adminLink').style.display = 'list-item';
                 }
             } catch (error) {
-                console.error('Failed to load user info:', error);
+                console.error('Kon gebruikersinformatie niet laden:', error);
                 window.location.href = '/login';
             }
         }
